@@ -1,35 +1,7 @@
 import pygame
-from typing import List, Optional, Set, Union
-from maps import nodes_matrix
+from typing import List, Optional, Set
 
-
-class Cell:
-    def __init__(self, x, y, cell_type: Union[int, str] = 0, food: int = 1):
-        '''cell_type: 0 или field для поля, 1 или wall для стены, по умолчанию 0\n
-        food: для еды 1, для энергии 10, по умолчанию 1, если клетка является полем'''
-        self.x, self.y = x, y  # Координаты клетки
-        self.previous = None  # Предыдущий оптимальный по пути узел графа.
-        self.cost = 2  # Цена узла графа. Необходима для расчёта
-        if isinstance(cell_type, str):
-            self.type = cell_type  # field для ячейки, по которой можно ходить, и wall для ячейки, являющейся стеной.
-        else:
-            self.type = 'field' if cell_type == 0 else 'wall'
-
-        # Думаю, как реализовать наличие еды в клетке. Для self.type == 'wall' можно определять None.
-        self.has_food = (True if food == 1 else False) if self.type != 'wall' else None
-        # Думаю, как реализовать наличие энерджайзера в клетке. Для self.type == 'wall' можно определять None.
-        self.has_energy = (True if food == 10 else False) if self.type != 'wall' else None
-
-    def reset(self):
-        # Сброс характеристик клетки для построения следующего пути.
-        self.previous = None
-        self.cost = 2
-
-    def __repr__(self) -> str:
-        return ('0' if self.x < 10 else '') + str(self.x) + '-' + ('0' if self.y < 10 else '') + str(self.y)
-
-    def __str__(self) -> str:
-        return '-' if self.type == 'wall' else ('E' if self.has_energy else ('F' if self.has_food else '0'))
+from maps import nodes_matrix, Cell
 
 
 def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Cell]]:
@@ -72,10 +44,11 @@ def get_adjacent_nodes(node: Cell) -> Set[Cell]:
     for s_x in (-1, 0, 1):
         for s_y in (-1, 0, 1):
             if (
+                0 not in (s_x, s_y) or
                 (s_x, s_y) == (0, 0) or
-                len(nodes_matrix) in [y + s_y, x + s_x] or
-                len(nodes_matrix[0]) in [y + s_y, x + s_x] or
-                -1 in [y + s_y, x + s_x]
+                len(nodes_matrix) in (y + s_y, x + s_x) or
+                len(nodes_matrix[0]) in (y + s_y, x + s_x) or
+                -1 in (y + s_y, x + s_x)
             ):
                 continue
             cur_node = nodes_matrix[y + s_y][x + s_x]
@@ -103,7 +76,7 @@ def estimate_distance(node: Cell, goal_node: Cell) -> int:
 
 
 def choose_node(reachable: List[Cell], goal_node: Cell) -> Cell:
-    min_cost = 58
+    min_cost = 100
     best_node = None
 
     for node in reachable:
