@@ -46,8 +46,8 @@ def get_adjacent_nodes(node: Cell) -> Set[Cell]:
             if (
                 0 not in (s_x, s_y) or
                 (s_x, s_y) == (0, 0) or
-                len(nodes_matrix) in (y + s_y, x + s_x) or
-                len(nodes_matrix[0]) in (y + s_y, x + s_x) or
+                len(nodes_matrix) == y + s_y or
+                len(nodes_matrix[0]) == x + s_x or
                 -1 in (y + s_y, x + s_x)
             ):
                 continue
