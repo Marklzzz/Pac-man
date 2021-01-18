@@ -71,17 +71,13 @@ def build_path(to_node: Cell) -> List[Cell]:
     return path
 
 
-def estimate_distance(node: Cell, goal_node: Cell) -> int:
-    return abs(node.x - goal_node.x) + abs(node.y - goal_node.y)
-
-
 def choose_node(reachable: List[Cell], goal_node: Cell) -> Cell:
     min_cost = 100
     best_node = None
 
     for node in reachable:
         cost_start_to_node = node.cost
-        cost_node_to_goal = estimate_distance(node, goal_node)
+        cost_node_to_goal = abs(node.x - goal_node.x) + abs(node.y - goal_node.y)
         total_cost = cost_start_to_node + cost_node_to_goal
 
         if min_cost > total_cost:
