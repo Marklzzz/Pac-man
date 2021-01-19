@@ -15,6 +15,8 @@ def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Cell]]:
     while reachable:
         node = choose_node(reachable, end_node)
 
+        if not node: 
+            return None
         if node == end_node:
             return build_path(end_node)
 

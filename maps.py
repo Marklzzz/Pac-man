@@ -145,3 +145,6 @@ nodes_matrix: List[List[Cell]] = [
     # ----------------------------
     [Cell(x, 30, 1) for x in r(28)]
 ]
+
+if __name__ == '__main__':
+    print(*[''.join([str(el) for el in l])for l in nodes_matrix], sep='\n')
