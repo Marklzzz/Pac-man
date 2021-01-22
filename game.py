@@ -1,4 +1,93 @@
+import os
 import pygame
+from typing import List, Optional, Set
+
+from maps import nodes_matrix, Cell
+
+
+def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Cell]]:
+    global nodes_matrix
+
+    start_node.cost = 0
+
+    reachable = [start_node]
+    explored = []
+
+    while reachable:
+        node = choose_node(reachable, end_node)
+
+        if not node: 
+            return None
+        if node == end_node:
+            return build_path(end_node)
+
+        del reachable[reachable.index(node)]
+        explored.append(node)
+
+        new_reachable = get_adjacent_nodes(node) - set(explored)
+        for adjacent in new_reachable:
+            if adjacent not in reachable:
+                reachable.append(adjacent)
+
+            if node.cost + 1 < adjacent.cost:
+                adjacent.previous = node
+                adjacent.cost = node.cost + 1
+
+    for line in nodes_matrix:
+        for cell in line:
+            cell.reset()
+
+    return None
+
+
+def get_adjacent_nodes(node: Cell) -> Set[Cell]:
+    x, y = node.x, node.y
+    adjacent = set()
+    global nodes_matrix
+    for s_x in (-1, 0, 1):
+        for s_y in (-1, 0, 1):
+            if (
+                0 not in (s_x, s_y) or
+                (s_x, s_y) == (0, 0) or
+                len(nodes_matrix) == y + s_y or
+                len(nodes_matrix[0]) == x + s_x or
+                -1 in (y + s_y, x + s_x)
+            ):
+                continue
+            cur_node = nodes_matrix[y + s_y][x + s_x]
+            if cur_node.type == 'field':
+                adjacent.add(cur_node)
+    return adjacent
+
+
+def build_path(to_node: Cell) -> List[Cell]:
+    global nodes_matrix
+    path = []
+    while to_node != None:
+        path.append(to_node)
+        to_node = to_node.previous
+
+    for line in nodes_matrix:
+        for cell in line:
+            cell.reset()
+
+    return path
+
+
+def choose_node(reachable: List[Cell], goal_node: Cell) -> Cell:
+    min_cost = 100
+    best_node = None
+
+    for node in reachable:
+        cost_start_to_node = node.cost
+        cost_node_to_goal = abs(node.x - goal_node.x) + abs(node.y - goal_node.y)
+        total_cost = cost_start_to_node + cost_node_to_goal
+
+        if min_cost > total_cost:
+            min_cost = total_cost
+            best_node = node
+
+    return best_node
 
 
 def create_full_matrix(matrix):
@@ -21,6 +110,7 @@ size = 960, 960
 screen = pygame.display.set_mode(size)
 size_of_parts = 28
 
+
 class Field:
     global screen, size_of_parts
 
@@ -42,7 +132,6 @@ class Field:
                                                        (size_of_parts, size_of_parts))
         self.spicific_angle_4 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты ←↓.png'),
                                                        (size_of_parts, size_of_parts))
-
 
         self.angle_1 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол карты ↑←.png'),
                                               (size_of_parts, size_of_parts))
@@ -74,7 +163,7 @@ class Field:
                                                     (size_of_parts, size_of_parts))
 
         self.Z = pygame.transform.scale(pygame.image.load('data/mazeparts/Z-переход.png'),
-                                                    (size_of_parts, size_of_parts))
+                                        (size_of_parts, size_of_parts))
         self.S = pygame.transform.scale(pygame.image.load('data/mazeparts/S-переход.png'),
                                         (size_of_parts, size_of_parts))
         self.M = pygame.transform.scale(pygame.image.load('data/mazeparts/M-переход.png'),
@@ -98,10 +187,6 @@ class Field:
         self.make_nine_line()
         self.make_tenth_line()
         self.make_eleventh_line()
-
-        pygame.display.flip()
-        while pygame.event.wait().type != pygame.QUIT:
-            pass
 
     def make_first_line(self):
         screen.blit(self.angle_1, (0, 0))
@@ -283,4 +368,127 @@ class Field:
     def make_eleventh_line(self):
         pass
 
-ex = Field()
+
+def load_image(name, color_key=None):
+    fullname = os.path.join(name)
+    image = pygame.image.load(fullname).convert()
+
+    if color_key is not None:
+        if color_key == -1:
+            color_key = image.get_at((0, 0))
+        image.set_colorkey(color_key)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+class Pac_man:
+    def __init__(self, x, y, direction):
+        self.x, self.y = x, y
+
+        self.animation = [load_image('data/pacman/left1.png', -1), load_image('data/pacman/left1.png', -1)]
+        self.rect = self.animation[0].get_rect()
+        self.mask = pygame.mask.from_surface(self.animation[0])
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+        self.speed = 180
+        self.direction = direction
+        self.frame = 0
+
+    def move(self):
+        if self.wall_check():
+            self.x += (self.speed * self.direction[0]) / fps
+            self.y += (self.speed * self.direction[1]) / fps
+            self.rect.x = self.x
+            self.rect.y = self.y
+
+    def wall_check(self):
+        return True
+
+
+class Object(pygame.sprite.Sprite):
+    def __init__(self, x, y, *groups):
+        super().__init__(*groups)
+        self.x, self.y = x, y
+
+    def update(self):
+        if pygame.sprite.collide_mask(self, pacman):
+            self.kill()
+
+
+class Point(Object, pygame.sprite.Sprite):
+    image = load_image('data/other/s_food.png', -1)
+
+    def __init__(self, x, y):
+        super().__init__(x, y, points_sprite)
+        self.image = Point.image
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = x
+        self.rect.y = y
+
+
+class Energizer(Object, pygame.sprite.Sprite):
+    image = load_image('data/other/b_food.png', -1)
+
+    def __init__(self, x, y):
+        super().__init__(x, y, points_sprite)
+        self.image = Energizer.image
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = x
+        self.rect.y = y
+
+
+class Fruits(Object):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+
+
+if __name__ == '__main__':
+    fps = 60
+    running = True
+    point = load_image('data/other/s_food.png', -1)
+    points_sprite = pygame.sprite.Group()
+
+    pacman = Pac_man(250, 250, (0, 0))
+
+    clock = pygame.time.Clock()
+    frame = 0
+    while running:
+        screen.fill((0, 0, 0))
+        ex = Field()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    pacman.direction = (-1, 0)
+                    pacman.animation = [load_image('data/pacman/left1.png', -1),
+                                        load_image('data/pacman/left2.png', -1)]
+                elif event.key == pygame.K_RIGHT:
+                    pacman.direction = (1, 0)
+                    pacman.animation = [load_image('data/pacman/right1.png', -1),
+                                        load_image('data/pacman/right2.png', -1)]
+                elif event.key == pygame.K_UP:
+                    pacman.direction = (0, -1)
+                    pacman.animation = [load_image('data/pacman/up1.png', -1),
+                                        load_image('data/pacman/up2.png', -1)]
+                elif event.key == pygame.K_DOWN:
+                    pacman.direction = (0, 1)
+                    pacman.animation = [load_image('data/pacman/down1.png', -1),
+                                        load_image('data/pacman/down2.png', -1)]
+
+        if pacman.frame % 15 == 0:
+            frame += 1
+        points_sprite.draw(screen)
+        screen.blit(pacman.animation[frame % 2], (pacman.x, pacman.y))
+        pacman.frame += 1
+        pacman.move()
+
+        clock.tick(fps)
+        pygame.display.flip()
+pygame.quit()
