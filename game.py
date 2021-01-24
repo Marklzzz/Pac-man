@@ -196,10 +196,6 @@ class Field:
         self.make_eighteenth_line()
         self.make_nineteenth_line()
 
-        pygame.display.flip()
-        while pygame.event.wait().type != pygame.QUIT:
-            pass
-
     def make_first_line(self):
         screen.blit(self.angle_1, (0, 0))
         for i in range(1, 13):
@@ -533,7 +529,6 @@ class Field:
         screen.blit(self.angle_2, (size_of_parts * 27, size_of_parts * 18))
 
 
-ex = Field()
 def load_image(name, color_key=None):
     fullname = os.path.join(name)
     image = pygame.image.load(fullname).convert()
