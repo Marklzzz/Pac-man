@@ -106,9 +106,9 @@ for i in matrix_full:
     print(i)
 pygame.init()
 
-size = 960, 960
+size = 728, 780
 screen = pygame.display.set_mode(size)
-size_of_parts = 28
+size_of_parts = 26
 
 class Field:
     global screen, size_of_parts
@@ -746,7 +746,8 @@ class Field:
 
 def load_image(name, color_key=None):
     fullname = os.path.join(name)
-    image = pygame.image.load(fullname).convert()
+    image = pygame.image.load(fullname)
+    image = pygame.transform.scale(image, (49, 49))
 
     if color_key is not None:
         if color_key == -1:
@@ -831,9 +832,9 @@ if __name__ == '__main__':
 
     clock = pygame.time.Clock()
     frame = 0
-    screen.fill((0, 0, 0))
-    ex = Field()
     while running:
+        screen.fill((0, 0, 0))
+        ex = Field()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
