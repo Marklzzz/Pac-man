@@ -129,7 +129,11 @@ class Field:
                                                        (size_of_parts, size_of_parts))
         self.spicific_angle_3 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты ←↓.png'),
                                                        (size_of_parts, size_of_parts))
-        self.spicific_angle_4 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты ←↓.png'),
+        self.spicific_angle_4 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты →↓.png'),
+                                                       (size_of_parts, size_of_parts))
+        self.spicific_angle_5 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты ←↑.png'),
+                                                       (size_of_parts, size_of_parts))
+        self.spicific_angle_6 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты →↑.png'),
                                                        (size_of_parts, size_of_parts))
 
 
@@ -195,6 +199,17 @@ class Field:
         self.make_seventeenth_line()
         self.make_eighteenth_line()
         self.make_nineteenth_line()
+        self.make_twentieth_line()
+        self.make_21_line()
+        self.make_22_line()
+        self.make_23_line()
+        self.make_24_line()
+        self.make_25_line()
+        self.make_26_line()
+        self.make_27_line()
+        self.make_28_line()
+        self.make_29_line()
+        self.make_30_line()
 
     def make_first_line(self):
         screen.blit(self.angle_1, (0, 0))
@@ -528,6 +543,206 @@ class Field:
 
         screen.blit(self.angle_2, (size_of_parts * 27, size_of_parts * 18))
 
+    def make_twentieth_line(self):
+        screen.blit(self.wall_2, (0, size_of_parts * 19))
+
+        screen.blit(self.frame_2, (size_of_parts * 13, size_of_parts * 19))
+        screen.blit(self.frame_1, (size_of_parts * 14, size_of_parts * 19))
+
+        screen.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 19))
+
+    def make_21_line(self):
+        screen.blit(self.wall_2, (0, size_of_parts * 20))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 2, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 3, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 4, size_of_parts * 20))
+        screen.blit(self.angle_frame_2, (size_of_parts * 5, size_of_parts * 20))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 7, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 8, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 9, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 10, size_of_parts * 20))
+        screen.blit(self.angle_frame_2, (size_of_parts * 11, size_of_parts * 20))
+
+        screen.blit(self.frame_2, (size_of_parts * 13, size_of_parts * 20))
+        screen.blit(self.frame_1, (size_of_parts * 14, size_of_parts * 20))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 16, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 17, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 18, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 19, size_of_parts * 20))
+        screen.blit(self.angle_frame_2, (size_of_parts * 20, size_of_parts * 20))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 22, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 23, size_of_parts * 20))
+        screen.blit(self.frame_4, (size_of_parts * 24, size_of_parts * 20))
+        screen.blit(self.angle_frame_2, (size_of_parts * 25, size_of_parts * 20))
+
+        screen.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 20))
+
+    def make_22_line(self):
+        screen.blit(self.wall_2, (0, size_of_parts * 21))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 2, size_of_parts * 21))
+        screen.blit(self.frame_3, (size_of_parts * 3, size_of_parts * 21))
+        screen.blit(self.angle_frame_2, (size_of_parts * 4, size_of_parts * 21))
+        screen.blit(self.frame_2, (size_of_parts * 5, size_of_parts * 21))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 7, size_of_parts * 21))
+        screen.blit(self.frame_3, (size_of_parts * 8, size_of_parts * 21))
+        screen.blit(self.frame_3, (size_of_parts * 9, size_of_parts * 21))
+        screen.blit(self.frame_3, (size_of_parts * 10, size_of_parts * 21))
+        screen.blit(self.angle_frame_4, (size_of_parts * 11, size_of_parts * 21))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 13, size_of_parts * 21))
+        screen.blit(self.angle_frame_4, (size_of_parts * 14, size_of_parts * 21))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 16, size_of_parts * 21))
+        screen.blit(self.frame_3, (size_of_parts * 17, size_of_parts * 21))
+        screen.blit(self.frame_3, (size_of_parts * 18, size_of_parts * 21))
+        screen.blit(self.frame_3, (size_of_parts * 19, size_of_parts * 21))
+        screen.blit(self.angle_frame_4, (size_of_parts * 20, size_of_parts * 21))
+
+        screen.blit(self.frame_1, (size_of_parts * 22, size_of_parts * 21))
+        screen.blit(self.angle_frame_1, (size_of_parts * 23, size_of_parts * 21))
+        screen.blit(self.frame_3, (size_of_parts * 24, size_of_parts * 21))
+        screen.blit(self.angle_frame_4, (size_of_parts * 25, size_of_parts * 21))
+
+        screen.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 21))
+
+    def make_23_line(self):
+        screen.blit(self.wall_2, (0, size_of_parts * 22))
+
+        screen.blit(self.frame_1, (size_of_parts * 4, size_of_parts * 22))
+        screen.blit(self.frame_2, (size_of_parts * 5, size_of_parts * 22))
+
+        screen.blit(self.frame_1, (size_of_parts * 22, size_of_parts * 22))
+        screen.blit(self.frame_2, (size_of_parts * 23, size_of_parts * 22))
+
+        screen.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 22))
+
+    def make_24_line(self):
+        screen.blit(self.spicific_angle_3, (0, size_of_parts * 23))
+        screen.blit(self.frame_4, (size_of_parts, size_of_parts * 23))
+        screen.blit(self.angle_frame_2, (size_of_parts * 2, size_of_parts * 23))
+
+        screen.blit(self.frame_1, (size_of_parts * 4, size_of_parts * 23))
+        screen.blit(self.frame_2, (size_of_parts * 5, size_of_parts * 23))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 7, size_of_parts * 23))
+        screen.blit(self.angle_frame_2, (size_of_parts * 8, size_of_parts * 23))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 10, size_of_parts * 23))
+        for i in range(1, 7):
+            screen.blit(self.frame_3, (size_of_parts * (10 + i), size_of_parts * 23))
+        screen.blit(self.angle_frame_2, (size_of_parts * 17, size_of_parts * 23))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 19, size_of_parts * 23))
+        screen.blit(self.angle_frame_2, (size_of_parts * 20, size_of_parts * 23))
+
+        screen.blit(self.frame_1, (size_of_parts * 22, size_of_parts * 23))
+        screen.blit(self.frame_2, (size_of_parts * 23, size_of_parts * 23))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 25, size_of_parts * 23))
+        screen.blit(self.frame_4, (size_of_parts * 26, size_of_parts * 23))
+        screen.blit(self.spicific_angle_4, (size_of_parts * 27, size_of_parts * 23))
+
+    def make_25_line(self):
+        screen.blit(self.spicific_angle_5, (0, size_of_parts * 24))
+        screen.blit(self.frame_3, (size_of_parts, size_of_parts * 24))
+        screen.blit(self.angle_frame_4, (size_of_parts * 2, size_of_parts * 24))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 4, size_of_parts * 24))
+        screen.blit(self.angle_frame_4, (size_of_parts * 5, size_of_parts * 24))
+
+        screen.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 24))
+        screen.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 24))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 10, size_of_parts * 24))
+        for i in range(1, 7):
+            screen.blit(self.frame_4, (size_of_parts * (10 + i), size_of_parts * 24))
+        screen.blit(self.angle_frame_2, (size_of_parts * 13, size_of_parts * 24))
+        screen.blit(self.angle_frame_1, (size_of_parts * 14, size_of_parts * 24))
+        screen.blit(self.angle_frame_4, (size_of_parts * 17, size_of_parts * 24))
+
+        screen.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 24))
+        screen.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 24))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 22, size_of_parts * 24))
+        screen.blit(self.angle_frame_4, (size_of_parts * 23, size_of_parts * 24))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 25, size_of_parts * 24))
+        screen.blit(self.frame_3, (size_of_parts * 26, size_of_parts * 24))
+        screen.blit(self.spicific_angle_6, (size_of_parts * 27, size_of_parts * 24))
+
+    def make_26_line(self):
+        screen.blit(self.wall_2, (0, size_of_parts * 25))
+
+        screen.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 25))
+        screen.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 25))
+
+        screen.blit(self.frame_1, (size_of_parts * 13, size_of_parts * 25))
+        screen.blit(self.frame_2, (size_of_parts * 14, size_of_parts * 25))
+
+        screen.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 25))
+        screen.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 25))
+
+        screen.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 25))
+
+    def make_27_line(self):
+        screen.blit(self.wall_2, (0, size_of_parts * 26))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 2, size_of_parts * 26))
+        for i in range(1, 5):
+            screen.blit(self.frame_3, (size_of_parts * (2 + i), size_of_parts * 26))
+        screen.blit(self.angle_frame_4, (size_of_parts * 7, size_of_parts * 26))
+        screen.blit(self.angle_frame_3, (size_of_parts * 8, size_of_parts * 26))
+        screen.blit(self.frame_3, (size_of_parts * 9, size_of_parts * 26))
+        screen.blit(self.frame_3, (size_of_parts * 10, size_of_parts * 26))
+        screen.blit(self.angle_frame_2, (size_of_parts * 11, size_of_parts * 26))
+
+        screen.blit(self.frame_1, (size_of_parts * 13, size_of_parts * 26))
+        screen.blit(self.frame_2, (size_of_parts * 14, size_of_parts * 26))
+
+        screen.blit(self.angle_frame_1, (size_of_parts * 16, size_of_parts * 26))
+        screen.blit(self.frame_3, (size_of_parts * 17, size_of_parts * 26))
+        screen.blit(self.frame_3, (size_of_parts * 18, size_of_parts * 26))
+        screen.blit(self.angle_frame_4, (size_of_parts * 19, size_of_parts * 26))
+        screen.blit(self.angle_frame_3, (size_of_parts * 20, size_of_parts * 26))
+        for i in range(1, 5):
+            screen.blit(self.frame_3, (size_of_parts * (20 + i), size_of_parts * 26))
+        screen.blit(self.angle_frame_2, (size_of_parts * 25, size_of_parts * 26))
+
+        screen.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 26))
+
+    def make_28_line(self):
+        screen.blit(self.wall_2, (0, size_of_parts * 27))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 2, size_of_parts * 27))
+        for i in range(1, 9):
+            screen.blit(self.frame_4, (size_of_parts * (2 + i), size_of_parts * 27))
+        screen.blit(self.angle_frame_4, (size_of_parts * 11, size_of_parts * 27))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 13, size_of_parts * 27))
+        screen.blit(self.angle_frame_4, (size_of_parts * 14, size_of_parts * 27))
+
+        screen.blit(self.angle_frame_3, (size_of_parts * 16, size_of_parts * 27))
+        for i in range(1, 9):
+            screen.blit(self.frame_4, (size_of_parts * (16 + i), size_of_parts * 27))
+        screen.blit(self.angle_frame_4, (size_of_parts * 25, size_of_parts * 27))
+
+        screen.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 27))
+
+    def make_29_line(self):
+        screen.blit(self.wall_2, (0, size_of_parts * 28))
+        screen.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 28))
+
+    def make_30_line(self):
+        screen.blit(self.angle_3, (0, size_of_parts * 29))
+        for i in range(1, 27):
+            screen.blit(self.wall_4, (size_of_parts * i, size_of_parts * 29))
+        screen.blit(self.angle_4, (size_of_parts * 27, size_of_parts * 29))
 
 def load_image(name, color_key=None):
     fullname = os.path.join(name)
@@ -616,10 +831,9 @@ if __name__ == '__main__':
 
     clock = pygame.time.Clock()
     frame = 0
+    screen.fill((0, 0, 0))
+    ex = Field()
     while running:
-        screen.fill((0, 0, 0))
-        ex = Field()
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
