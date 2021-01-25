@@ -107,7 +107,7 @@ for i in matrix_full:
 pygame.init()
 
 size = 728, 780
-maze = pygame.display.set_mode(size)
+maze = pygame.Surface(size)
 screen = pygame.display.set_mode(size)
 size_of_parts = 26
 
@@ -832,11 +832,11 @@ if __name__ == '__main__':
     point = load_image('data/other/s_food.png', -1)
     points_sprite = pygame.sprite.Group()
 
-    pacman = Pac_man(250, 250, (0, 0))
+    pacman = Pac_man(size_of_parts * 13.5 - 14, size_of_parts * 22 - 14, (0, 0))
 
     clock = pygame.time.Clock()
     frame = 0
-    maze.fill((0, 0, 0))
+    screen.fill((0, 0, 0))
     ex = Field()
     while running:
         ex.update()
@@ -864,8 +864,8 @@ if __name__ == '__main__':
 
         if pacman.frame % 15 == 0:
             frame += 1
-        points_sprite.draw(maze)
-        maze.blit(pacman.animation[frame % 2], (pacman.x, pacman.y))
+        points_sprite.draw(screen)
+        screen.blit(pacman.animation[frame % 2], (pacman.x, pacman.y))
         pacman.frame += 1
         pacman.move()
 
