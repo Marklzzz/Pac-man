@@ -1,6 +1,6 @@
 import os
-import pygame
-from typing import List, Optional, Set
+import pygame, pygame.display
+from typing import List, Optional, Set, Tuple
 
 from maps import nodes_matrix, Cell
 
@@ -60,7 +60,7 @@ def get_adjacent_nodes(node: Cell) -> Set[Cell]:
     return adjacent
 
 
-def build_path(to_node: Cell) -> List[Cell]:
+def build_path(to_node: Cell) -> List[Tuple[int, int]]:
     global nodes_matrix
     path = []
     while to_node != None:
@@ -70,8 +70,14 @@ def build_path(to_node: Cell) -> List[Cell]:
     for line in nodes_matrix:
         for cell in line:
             cell.reset()
+    
+    sides = []
+    last_n = path[-1]
+    for n in list(reversed(path))[1:]:
+        sides.append((n.x - last_n.x, n.y - last_n.y))
+        last_n = n
 
-    return path
+    return sides
 
 
 def choose_node(reachable: List[Cell], goal_node: Cell) -> Cell:
@@ -92,7 +98,7 @@ def choose_node(reachable: List[Cell], goal_node: Cell) -> Cell:
 
 
 pygame.init()
-size_of_parts = 26
+size_of_parts = 24
 
 size = 28 * size_of_parts, 31 * size_of_parts
 
@@ -752,7 +758,7 @@ class Field:
 def load_image(name, color_key=None):
     fullname = os.path.join(name)
     image = pygame.image.load(fullname)
-    image = pygame.transform.scale(image, (49, 49))
+    image = pygame.transform.scale(image, (45, 45))
 
     if color_key is not None:
         if color_key == -1:
@@ -767,7 +773,7 @@ class Pac_man:
     def __init__(self, x, y, direction):
         self.x, self.y = x, y
 
-        self.animation = [load_image('data/pacman/left2.png', -1)] * 3
+        self.animation = [load_image('data/pacman/full.png')] * 3
         self.rect = self.animation[0].get_rect()
         self.mask = pygame.mask.from_surface(self.animation[0])
         self.rect.x = self.x
@@ -775,7 +781,6 @@ class Pac_man:
 
         self.speed = 180
         self.direction = direction
-        self.frame = 0
 
     def move(self):
         if self.wall_check():
@@ -833,10 +838,10 @@ if __name__ == '__main__':
     point = load_image('data/other/s_food.png', -1)
     points_sprite = pygame.sprite.Group()
 
-    pacman = Pac_man(size_of_parts * 13.5 - 14, size_of_parts * 22 - 14, (0, 0))
+    pacman = Pac_man(size_of_parts * 14 - 11, size_of_parts * 23 - 11, (0, 0))
 
     clock = pygame.time.Clock()
-    frame = 0
+    global_frame, frame = 0, 0
     screen.fill((0, 0, 0))
     ex = Field()
     while running:
@@ -867,11 +872,12 @@ if __name__ == '__main__':
                                         load_image('data/pacman/down2.png', -1),
                                         load_image('data/pacman/full.png')]
 
-        if pacman.frame % 4 == 0:
+        if global_frame % 4 == 0:
             frame += 1
         points_sprite.draw(screen)
         screen.blit(pacman.animation[frame % 3], (pacman.x, pacman.y))
-        pacman.frame += 1
+        global_frame += 1
+        
         pacman.move()
 
         clock.tick(fps)
