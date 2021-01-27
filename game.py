@@ -769,6 +769,62 @@ def load_image(name, color_key=None):
     return image
 
 
+class Ghost:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+        self.animation = [load_image('data/ghosts/blinky/right1.png')]
+        self.rect = self.animation[0].get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+        
+        self.counter = 0
+        self.path = iter([])
+        
+        self.angry = False  # злой режим для Блинки
+        self.dispersion = True  # режим разбегания
+        self.in_the_game = False  # призрак в игре/не в игре
+    
+    def move(self, end=None):
+        coord_y = int((self.y + 11) // size_of_parts)
+        coord_x = int((self.x + 11) // size_of_parts)
+        try:
+            if self.counter == 0:
+                if end:
+                    self.path = iter(find_path(
+                        nodes_matrix[coord_y][coord_x],
+                        nodes_matrix[int((end[1] + 11) // size_of_parts)]
+                                    [int((end[0] + 11) // size_of_parts)]
+                    ))
+                self.direction = next(self.path)
+                self.counter = 8 if self.angry else 16
+            self.x += self.direction[0] * (3 if self.angry else 1.5)
+            self.y += self.direction[1] * (3 if self.angry else 1.5)
+            self.rect.x = self.x
+            self.rect.y = self.y
+            self.counter -= 1
+        except StopIteration:
+            pass
+            
+
+class Blinky(Ghost):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.animation = [load_image('data/ghosts/blinky/right1.png'), load_image('data/ghosts/blinky/right2.png')]
+    
+    def move(self, end=None):
+        super().move(end)
+        if self.direction == (1, 0):
+            side = 'right'
+        elif self.direction == (-1, 0):
+            side = 'left'
+        elif self.direction == (0, 1):
+            side = 'down'
+        elif self.direction == (0, -1):
+            side = 'up'
+        self.animation = [load_image('data/ghosts/blinky/{}{}1.png'.format('angry_' if self.angry else '', side)),
+                          load_image('data/ghosts/blinky/{}{}2.png'.format('angry_' if self.angry else '', side))]
+            
+
 class Pac_man:
     def __init__(self, x, y, direction):
         self.x, self.y = x, y
@@ -839,11 +895,13 @@ if __name__ == '__main__':
     points_sprite = pygame.sprite.Group()
 
     pacman = Pac_man(size_of_parts * 14 - 11, size_of_parts * 23 - 11, (0, 0))
+    blinky = Blinky(size_of_parts * 1 - 11, size_of_parts * 1 - 11)
 
     clock = pygame.time.Clock()
     global_frame, frame = 0, 0
     screen.fill((0, 0, 0))
     ex = Field()
+    blinky.move((pacman.x, pacman.y))
     while running:
         ex.update()
         for event in pygame.event.get():
@@ -876,9 +934,11 @@ if __name__ == '__main__':
             frame += 1
         points_sprite.draw(screen)
         screen.blit(pacman.animation[frame % 3], (pacman.x, pacman.y))
+        screen.blit(blinky.animation[frame % 2], (blinky.x, blinky.y))
         global_frame += 1
         
         pacman.move()
+        blinky.move((pacman.x, pacman.y))
 
         clock.tick(fps)
         pygame.display.flip()
