@@ -90,20 +90,7 @@ def choose_node(reachable: List[Cell], goal_node: Cell) -> Cell:
     return best_node
 
 
-def create_full_matrix(matrix):
-    for i in range(len(matrix)):
-        matrix[i] = [*matrix[i], *matrix[i][::-1]]
-    return matrix
 
-
-matrix_part = [
-
-]
-
-matrix_full = create_full_matrix(matrix_part)
-
-for i in matrix_full:
-    print(i)
 pygame.init()
 
 size = 728, 780
@@ -766,7 +753,7 @@ class Pac_man:
     def __init__(self, x, y, direction):
         self.x, self.y = x, y
 
-        self.animation = [load_image('data/pacman/left1.png', -1), load_image('data/pacman/left1.png', -1)]
+        self.animation = [load_image('data/pacman/left2.png', -1)] * 3
         self.rect = self.animation[0].get_rect()
         self.mask = pygame.mask.from_surface(self.animation[0])
         self.rect.x = self.x
@@ -848,24 +835,28 @@ if __name__ == '__main__':
                 if event.key == pygame.K_LEFT:
                     pacman.direction = (-1, 0)
                     pacman.animation = [load_image('data/pacman/left1.png', -1),
-                                        load_image('data/pacman/left2.png', -1)]
+                                        load_image('data/pacman/left2.png', -1),
+                                        load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_RIGHT:
                     pacman.direction = (1, 0)
                     pacman.animation = [load_image('data/pacman/right1.png', -1),
-                                        load_image('data/pacman/right2.png', -1)]
+                                        load_image('data/pacman/right2.png', -1),
+                                        load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_UP:
                     pacman.direction = (0, -1)
                     pacman.animation = [load_image('data/pacman/up1.png', -1),
-                                        load_image('data/pacman/up2.png', -1)]
+                                        load_image('data/pacman/up2.png', -1),
+                                        load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_DOWN:
                     pacman.direction = (0, 1)
                     pacman.animation = [load_image('data/pacman/down1.png', -1),
-                                        load_image('data/pacman/down2.png', -1)]
+                                        load_image('data/pacman/down2.png', -1),
+                                        load_image('data/pacman/full.png')]
 
-        if pacman.frame % 15 == 0:
+        if pacman.frame % 4 == 0:
             frame += 1
         points_sprite.draw(screen)
-        screen.blit(pacman.animation[frame % 2], (pacman.x, pacman.y))
+        screen.blit(pacman.animation[frame % 3], (pacman.x, pacman.y))
         pacman.frame += 1
         pacman.move()
 
