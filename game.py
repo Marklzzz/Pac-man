@@ -1,5 +1,5 @@
 import os
-import pygame, pygame.display
+import pygame, pygame.display, pygame.sprite
 from typing import List, Optional, Set, Tuple
 
 from maps import nodes_matrix, Cell
@@ -98,84 +98,84 @@ def choose_node(reachable: List[Cell], goal_node: Cell) -> Cell:
 
 
 pygame.init()
-size_of_parts = 24
+cell_size = 24
 
-size = 28 * size_of_parts, 31 * size_of_parts
+size = 28 * cell_size, 31 * cell_size
 
 maze = pygame.Surface(size)
 screen = pygame.display.set_mode(size)
 
 
 class Field:
-    global maze, size_of_parts, screen
+    global maze, cell_size, screen
 
     def __init__(self):
         self.wall_1 = pygame.transform.scale(pygame.image.load('data/mazeparts/борт карты ↑.png'),
-                                             (size_of_parts, size_of_parts))
+                                             (cell_size, cell_size))
         self.wall_2 = pygame.transform.scale(pygame.image.load('data/mazeparts/борт карты ←.png'),
-                                             (size_of_parts, size_of_parts))
+                                             (cell_size, cell_size))
         self.wall_3 = pygame.transform.scale(pygame.image.load('data/mazeparts/борт карты →.png'),
-                                             (size_of_parts, size_of_parts))
+                                             (cell_size, cell_size))
         self.wall_4 = pygame.transform.scale(pygame.image.load('data/mazeparts/борт карты ↓.png'),
-                                             (size_of_parts, size_of_parts))
+                                             (cell_size, cell_size))
 
         self.spicific_angle_1 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты ↑→.png'),
-                                                       (size_of_parts, size_of_parts))
+                                                       (cell_size, cell_size))
         self.spicific_angle_2 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты ↑←.png'),
-                                                       (size_of_parts, size_of_parts))
+                                                       (cell_size, cell_size))
         self.spicific_angle_3 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты ←↓.png'),
-                                                       (size_of_parts, size_of_parts))
+                                                       (cell_size, cell_size))
         self.spicific_angle_4 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты →↓.png'),
-                                                       (size_of_parts, size_of_parts))
+                                                       (cell_size, cell_size))
         self.spicific_angle_5 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты ←↑.png'),
-                                                       (size_of_parts, size_of_parts))
+                                                       (cell_size, cell_size))
         self.spicific_angle_6 = pygame.transform.scale(pygame.image.load('data/mazeparts/поворот внутри карты →↑.png'),
-                                                       (size_of_parts, size_of_parts))
+                                                       (cell_size, cell_size))
 
 
         self.angle_1 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол карты ↑←.png'),
-                                              (size_of_parts, size_of_parts))
+                                              (cell_size, cell_size))
         self.angle_2 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол карты ↑→.png'),
-                                              (size_of_parts, size_of_parts))
+                                              (cell_size, cell_size))
         self.angle_3 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол карты ↓←.png'),
-                                              (size_of_parts, size_of_parts))
+                                              (cell_size, cell_size))
         self.angle_3 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол карты ↓←.png'),
-                                              (size_of_parts, size_of_parts))
+                                              (cell_size, cell_size))
         self.angle_4 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол карты ↓→.png'),
-                                              (size_of_parts, size_of_parts))
+                                              (cell_size, cell_size))
 
         self.frame_1 = pygame.transform.scale(pygame.image.load('data/mazeparts/борт блока →.png'),
-                                              (size_of_parts, size_of_parts))
+                                              (cell_size, cell_size))
         self.frame_2 = pygame.transform.scale(pygame.image.load('data/mazeparts/борт блока ←.png'),
-                                              (size_of_parts, size_of_parts))
+                                              (cell_size, cell_size))
         self.frame_3 = pygame.transform.scale(pygame.image.load('data/mazeparts/борт блока ↑.png'),
-                                              (size_of_parts, size_of_parts))
+                                              (cell_size, cell_size))
         self.frame_4 = pygame.transform.scale(pygame.image.load('data/mazeparts/борт блока ↓.png'),
-                                              (size_of_parts, size_of_parts))
+                                              (cell_size, cell_size))
 
         self.angle_frame_1 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол блока ↑←.png'),
-                                                    (size_of_parts, size_of_parts))
+                                                    (cell_size, cell_size))
         self.angle_frame_2 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол блока ↑→.png'),
-                                                    (size_of_parts, size_of_parts))
+                                                    (cell_size, cell_size))
         self.angle_frame_3 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол блока ↓←.png'),
-                                                    (size_of_parts, size_of_parts))
+                                                    (cell_size, cell_size))
         self.angle_frame_4 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол блока ↓→.png'),
-                                                    (size_of_parts, size_of_parts))
+                                                    (cell_size, cell_size))
 
         self.Z = pygame.transform.scale(pygame.image.load('data/mazeparts/Z-переход.png'),
-                                                    (size_of_parts, size_of_parts))
+                                                    (cell_size, cell_size))
         self.S = pygame.transform.scale(pygame.image.load('data/mazeparts/S-переход.png'),
-                                        (size_of_parts, size_of_parts))
+                                        (cell_size, cell_size))
         self.M = pygame.transform.scale(pygame.image.load('data/mazeparts/M-переход.png'),
-                                        (size_of_parts, size_of_parts))
+                                        (cell_size, cell_size))
         self.W = pygame.transform.scale(pygame.image.load('data/mazeparts/W-переход.png'),
-                                        (size_of_parts, size_of_parts))
+                                        (cell_size, cell_size))
 
         self.rotate_angle_1 = pygame.transform.scale(pygame.image.load('data/mazeparts/центр поворот ↑→.png'),
-                                        (size_of_parts, size_of_parts))
+                                        (cell_size, cell_size))
 
         self.rotate_angle_2 = pygame.transform.scale(pygame.image.load('data/mazeparts/центр поворот ↑←.png'),
-                                                     (size_of_parts, size_of_parts))
+                                                     (cell_size, cell_size))
         self.make_1_line()
         self.make_2_line()
         self.make_3_line()
@@ -214,546 +214,546 @@ class Field:
     def make_1_line(self):
         maze.blit(self.angle_1, (0, 0))
         for i in range(1, 13):
-            maze.blit(self.wall_1, (i * size_of_parts, 0))
-        maze.blit(self.spicific_angle_1, (size_of_parts * 13, 0))
-        maze.blit(self.spicific_angle_2, (size_of_parts * 14, 0))
+            maze.blit(self.wall_1, (i * cell_size, 0))
+        maze.blit(self.spicific_angle_1, (cell_size * 13, 0))
+        maze.blit(self.spicific_angle_2, (cell_size * 14, 0))
         for i in range(1, 13):
-            maze.blit(self.wall_1, (size_of_parts * 14 + i * size_of_parts, 0))
-        maze.blit(self.angle_2, (size_of_parts * 27, 0))
+            maze.blit(self.wall_1, (cell_size * 14 + i * cell_size, 0))
+        maze.blit(self.angle_2, (cell_size * 27, 0))
 
     def make_2_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts))
-        maze.blit(self.frame_1, (size_of_parts * 13, size_of_parts))
-        maze.blit(self.frame_2, (size_of_parts * 14, size_of_parts))
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts))
+        maze.blit(self.wall_2, (0, cell_size))
+        maze.blit(self.frame_1, (cell_size * 13, cell_size))
+        maze.blit(self.frame_2, (cell_size * 14, cell_size))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size))
 
     def make_3_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 2))
+        maze.blit(self.wall_2, (0, cell_size * 2))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 2, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 3, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 4, size_of_parts * 2))
-        maze.blit(self.angle_frame_2, (size_of_parts * 5, size_of_parts * 2))
+        maze.blit(self.angle_frame_1, (cell_size * 2, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 3, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 4, cell_size * 2))
+        maze.blit(self.angle_frame_2, (cell_size * 5, cell_size * 2))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 7, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 8, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 9, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 10, size_of_parts * 2))
-        maze.blit(self.angle_frame_2, (size_of_parts * 11, size_of_parts * 2))
+        maze.blit(self.angle_frame_1, (cell_size * 7, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 8, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 9, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 10, cell_size * 2))
+        maze.blit(self.angle_frame_2, (cell_size * 11, cell_size * 2))
 
-        maze.blit(self.frame_1, (size_of_parts * 13, size_of_parts * 2))
-        maze.blit(self.frame_2, (size_of_parts * 14, size_of_parts * 2))
+        maze.blit(self.frame_1, (cell_size * 13, cell_size * 2))
+        maze.blit(self.frame_2, (cell_size * 14, cell_size * 2))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 16, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 17, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 18, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 19, size_of_parts * 2))
-        maze.blit(self.angle_frame_2, (size_of_parts * 20, size_of_parts * 2))
+        maze.blit(self.angle_frame_1, (cell_size * 16, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 17, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 18, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 19, cell_size * 2))
+        maze.blit(self.angle_frame_2, (cell_size * 20, cell_size * 2))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 22, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 23, size_of_parts * 2))
-        maze.blit(self.frame_4, (size_of_parts * 24, size_of_parts * 2))
-        maze.blit(self.angle_frame_2, (size_of_parts * 25, size_of_parts * 2))
+        maze.blit(self.angle_frame_1, (cell_size * 22, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 23, cell_size * 2))
+        maze.blit(self.frame_4, (cell_size * 24, cell_size * 2))
+        maze.blit(self.angle_frame_2, (cell_size * 25, cell_size * 2))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 2))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 2))
 
     def make_4_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 3))
+        maze.blit(self.wall_2, (0, cell_size * 3))
 
-        maze.blit(self.frame_1, (size_of_parts * 2, size_of_parts * 3))
-        maze.blit(self.frame_2, (size_of_parts * 5, size_of_parts * 3))
+        maze.blit(self.frame_1, (cell_size * 2, cell_size * 3))
+        maze.blit(self.frame_2, (cell_size * 5, cell_size * 3))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 3))
-        maze.blit(self.frame_2, (size_of_parts * 11, size_of_parts * 3))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 3))
+        maze.blit(self.frame_2, (cell_size * 11, cell_size * 3))
 
-        maze.blit(self.frame_1, (size_of_parts * 13, size_of_parts * 3))
-        maze.blit(self.frame_2, (size_of_parts * 14, size_of_parts * 3))
+        maze.blit(self.frame_1, (cell_size * 13, cell_size * 3))
+        maze.blit(self.frame_2, (cell_size * 14, cell_size * 3))
 
-        maze.blit(self.frame_2, (size_of_parts * 16, size_of_parts * 3))
-        maze.blit(self.frame_1, (size_of_parts * 20, size_of_parts * 3))
+        maze.blit(self.frame_2, (cell_size * 16, cell_size * 3))
+        maze.blit(self.frame_1, (cell_size * 20, cell_size * 3))
 
-        maze.blit(self.frame_1, (size_of_parts * 22, size_of_parts * 3))
-        maze.blit(self.frame_2, (size_of_parts * 25, size_of_parts * 3))
+        maze.blit(self.frame_1, (cell_size * 22, cell_size * 3))
+        maze.blit(self.frame_2, (cell_size * 25, cell_size * 3))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 3))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 3))
 
     def make_5_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 4))
+        maze.blit(self.wall_2, (0, cell_size * 4))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 2, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 3, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 4, size_of_parts * 4))
-        maze.blit(self.angle_frame_4, (size_of_parts * 5, size_of_parts * 4))
+        maze.blit(self.angle_frame_3, (cell_size * 2, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 3, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 4, cell_size * 4))
+        maze.blit(self.angle_frame_4, (cell_size * 5, cell_size * 4))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 7, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 8, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 9, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 10, size_of_parts * 4))
-        maze.blit(self.angle_frame_4, (size_of_parts * 11, size_of_parts * 4))
+        maze.blit(self.angle_frame_3, (cell_size * 7, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 8, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 9, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 10, cell_size * 4))
+        maze.blit(self.angle_frame_4, (cell_size * 11, cell_size * 4))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 13, size_of_parts * 4))
-        maze.blit(self.angle_frame_4, (size_of_parts * 14, size_of_parts * 4))
+        maze.blit(self.angle_frame_3, (cell_size * 13, cell_size * 4))
+        maze.blit(self.angle_frame_4, (cell_size * 14, cell_size * 4))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 16, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 17, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 18, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 19, size_of_parts * 4))
-        maze.blit(self.angle_frame_4, (size_of_parts * 20, size_of_parts * 4))
+        maze.blit(self.angle_frame_3, (cell_size * 16, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 17, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 18, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 19, cell_size * 4))
+        maze.blit(self.angle_frame_4, (cell_size * 20, cell_size * 4))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 22, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 23, size_of_parts * 4))
-        maze.blit(self.frame_4, (size_of_parts * 24, size_of_parts * 4))
-        maze.blit(self.angle_frame_4, (size_of_parts * 25, size_of_parts * 4))
+        maze.blit(self.angle_frame_3, (cell_size * 22, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 23, cell_size * 4))
+        maze.blit(self.frame_4, (cell_size * 24, cell_size * 4))
+        maze.blit(self.angle_frame_4, (cell_size * 25, cell_size * 4))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 4))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 4))
 
     def make_6_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 5))
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 5))
+        maze.blit(self.wall_2, (0, cell_size * 5))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 5))
 
     def make_7_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 6))
+        maze.blit(self.wall_2, (0, cell_size * 6))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 2, size_of_parts * 6))
-        maze.blit(self.frame_3, (size_of_parts * 3, size_of_parts * 6))
-        maze.blit(self.frame_3, (size_of_parts * 4, size_of_parts * 6))
-        maze.blit(self.angle_frame_2, (size_of_parts * 5, size_of_parts * 6))
+        maze.blit(self.angle_frame_1, (cell_size * 2, cell_size * 6))
+        maze.blit(self.frame_3, (cell_size * 3, cell_size * 6))
+        maze.blit(self.frame_3, (cell_size * 4, cell_size * 6))
+        maze.blit(self.angle_frame_2, (cell_size * 5, cell_size * 6))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 7, size_of_parts * 6))
-        maze.blit(self.angle_frame_2, (size_of_parts * 8, size_of_parts * 6))
+        maze.blit(self.angle_frame_1, (cell_size * 7, cell_size * 6))
+        maze.blit(self.angle_frame_2, (cell_size * 8, cell_size * 6))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 10, size_of_parts * 6))
+        maze.blit(self.angle_frame_1, (cell_size * 10, cell_size * 6))
         for i in range(1, 7):
-            maze.blit(self.frame_3, (size_of_parts * (10 + i), size_of_parts * 6))
-        maze.blit(self.angle_frame_2, (size_of_parts * 17, size_of_parts * 6))
+            maze.blit(self.frame_3, (cell_size * (10 + i), cell_size * 6))
+        maze.blit(self.angle_frame_2, (cell_size * 17, cell_size * 6))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 19, size_of_parts * 6))
-        maze.blit(self.angle_frame_2, (size_of_parts * 20, size_of_parts * 6))
+        maze.blit(self.angle_frame_1, (cell_size * 19, cell_size * 6))
+        maze.blit(self.angle_frame_2, (cell_size * 20, cell_size * 6))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 22, size_of_parts * 6))
-        maze.blit(self.frame_3, (size_of_parts * 23, size_of_parts * 6))
-        maze.blit(self.frame_3, (size_of_parts * 24, size_of_parts * 6))
-        maze.blit(self.angle_frame_2, (size_of_parts * 25, size_of_parts * 6))
+        maze.blit(self.angle_frame_1, (cell_size * 22, cell_size * 6))
+        maze.blit(self.frame_3, (cell_size * 23, cell_size * 6))
+        maze.blit(self.frame_3, (cell_size * 24, cell_size * 6))
+        maze.blit(self.angle_frame_2, (cell_size * 25, cell_size * 6))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 6))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 6))
 
     def make_8_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 7))
+        maze.blit(self.wall_2, (0, cell_size * 7))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 2, size_of_parts * 7))
-        maze.blit(self.frame_4, (size_of_parts * 3, size_of_parts * 7))
-        maze.blit(self.frame_4, (size_of_parts * 4, size_of_parts * 7))
-        maze.blit(self.angle_frame_4, (size_of_parts * 5, size_of_parts * 7))
+        maze.blit(self.angle_frame_3, (cell_size * 2, cell_size * 7))
+        maze.blit(self.frame_4, (cell_size * 3, cell_size * 7))
+        maze.blit(self.frame_4, (cell_size * 4, cell_size * 7))
+        maze.blit(self.angle_frame_4, (cell_size * 5, cell_size * 7))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 7))
-        maze.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 7))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 7))
+        maze.blit(self.frame_2, (cell_size * 8, cell_size * 7))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 10, size_of_parts * 7))
-        maze.blit(self.frame_4, (size_of_parts * 11, size_of_parts * 7))
-        maze.blit(self.frame_4, (size_of_parts * 12, size_of_parts * 7))
-        maze.blit(self.angle_frame_2, (size_of_parts * 13, size_of_parts * 7))
-        maze.blit(self.angle_frame_1, (size_of_parts * 14, size_of_parts * 7))
-        maze.blit(self.frame_4, (size_of_parts * 15, size_of_parts * 7))
-        maze.blit(self.frame_4, (size_of_parts * 16, size_of_parts * 7))
-        maze.blit(self.angle_frame_4, (size_of_parts * 17, size_of_parts * 7))
+        maze.blit(self.angle_frame_3, (cell_size * 10, cell_size * 7))
+        maze.blit(self.frame_4, (cell_size * 11, cell_size * 7))
+        maze.blit(self.frame_4, (cell_size * 12, cell_size * 7))
+        maze.blit(self.angle_frame_2, (cell_size * 13, cell_size * 7))
+        maze.blit(self.angle_frame_1, (cell_size * 14, cell_size * 7))
+        maze.blit(self.frame_4, (cell_size * 15, cell_size * 7))
+        maze.blit(self.frame_4, (cell_size * 16, cell_size * 7))
+        maze.blit(self.angle_frame_4, (cell_size * 17, cell_size * 7))
 
-        maze.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 7))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 7))
+        maze.blit(self.frame_1, (cell_size * 19, cell_size * 7))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 7))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 22, size_of_parts * 7))
-        maze.blit(self.frame_4, (size_of_parts * 23, size_of_parts * 7))
-        maze.blit(self.frame_4, (size_of_parts * 24, size_of_parts * 7))
-        maze.blit(self.angle_frame_4, (size_of_parts * 25, size_of_parts * 7))
+        maze.blit(self.angle_frame_3, (cell_size * 22, cell_size * 7))
+        maze.blit(self.frame_4, (cell_size * 23, cell_size * 7))
+        maze.blit(self.frame_4, (cell_size * 24, cell_size * 7))
+        maze.blit(self.angle_frame_4, (cell_size * 25, cell_size * 7))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 7))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 7))
 
     def make_9_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 8))
+        maze.blit(self.wall_2, (0, cell_size * 8))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 8))
-        maze.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 8))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 8))
+        maze.blit(self.frame_2, (cell_size * 8, cell_size * 8))
 
-        maze.blit(self.frame_1, (size_of_parts * 13, size_of_parts * 8))
-        maze.blit(self.frame_2, (size_of_parts * 14, size_of_parts * 8))
+        maze.blit(self.frame_1, (cell_size * 13, cell_size * 8))
+        maze.blit(self.frame_2, (cell_size * 14, cell_size * 8))
 
-        maze.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 8))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 8))
+        maze.blit(self.frame_1, (cell_size * 19, cell_size * 8))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 8))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 8))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 8))
 
     def make_10_line(self):
-        maze.blit(self.angle_3, (0, size_of_parts * 9))
+        maze.blit(self.angle_3, (0, cell_size * 9))
 
         for i in range(1, 5):
-            maze.blit(self.wall_4, (size_of_parts * i, size_of_parts * 9))
-        maze.blit(self.angle_frame_2, (size_of_parts * 5, size_of_parts * 9))
+            maze.blit(self.wall_4, (cell_size * i, cell_size * 9))
+        maze.blit(self.angle_frame_2, (cell_size * 5, cell_size * 9))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 9))
-        maze.blit(self.angle_frame_3, (size_of_parts * 8, size_of_parts * 9))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 9))
+        maze.blit(self.angle_frame_3, (cell_size * 8, cell_size * 9))
 
-        maze.blit(self.frame_3, (size_of_parts * 9, size_of_parts * 9))
-        maze.blit(self.frame_3, (size_of_parts * 10, size_of_parts * 9))
-        maze.blit(self.angle_frame_2, (size_of_parts * 11, size_of_parts * 9))
+        maze.blit(self.frame_3, (cell_size * 9, cell_size * 9))
+        maze.blit(self.frame_3, (cell_size * 10, cell_size * 9))
+        maze.blit(self.angle_frame_2, (cell_size * 11, cell_size * 9))
 
-        maze.blit(self.frame_1, (size_of_parts * 13, size_of_parts * 9))
-        maze.blit(self.frame_2, (size_of_parts * 14, size_of_parts * 9))
+        maze.blit(self.frame_1, (cell_size * 13, cell_size * 9))
+        maze.blit(self.frame_2, (cell_size * 14, cell_size * 9))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 16, size_of_parts * 9))
-        maze.blit(self.frame_3, (size_of_parts * 17, size_of_parts * 9))
-        maze.blit(self.frame_3, (size_of_parts * 18, size_of_parts * 9))
+        maze.blit(self.angle_frame_1, (cell_size * 16, cell_size * 9))
+        maze.blit(self.frame_3, (cell_size * 17, cell_size * 9))
+        maze.blit(self.frame_3, (cell_size * 18, cell_size * 9))
 
-        maze.blit(self.angle_frame_4, (size_of_parts * 19, size_of_parts * 9))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 9))
+        maze.blit(self.angle_frame_4, (cell_size * 19, cell_size * 9))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 9))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 22, size_of_parts * 9))
+        maze.blit(self.angle_frame_1, (cell_size * 22, cell_size * 9))
         for i in range(1, 5):
-            maze.blit(self.wall_4, (size_of_parts * (22 + i), size_of_parts * 9))
+            maze.blit(self.wall_4, (cell_size * (22 + i), cell_size * 9))
 
-        maze.blit(self.angle_4, (size_of_parts * 27, size_of_parts * 9))
+        maze.blit(self.angle_4, (cell_size * 27, cell_size * 9))
 
     def make_11_line(self):
-        maze.blit(self.wall_2, (size_of_parts * 5, size_of_parts * 10))
+        maze.blit(self.wall_2, (cell_size * 5, cell_size * 10))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 10))
-        maze.blit(self.angle_frame_1, (size_of_parts * 8, size_of_parts * 10))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 10))
+        maze.blit(self.angle_frame_1, (cell_size * 8, cell_size * 10))
 
-        maze.blit(self.frame_4, (size_of_parts * 9, size_of_parts * 10))
-        maze.blit(self.frame_4, (size_of_parts * 10, size_of_parts * 10))
-        maze.blit(self.angle_frame_4, (size_of_parts * 11, size_of_parts * 10))
+        maze.blit(self.frame_4, (cell_size * 9, cell_size * 10))
+        maze.blit(self.frame_4, (cell_size * 10, cell_size * 10))
+        maze.blit(self.angle_frame_4, (cell_size * 11, cell_size * 10))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 13, size_of_parts * 10))
-        maze.blit(self.angle_frame_4, (size_of_parts * 14, size_of_parts * 10))
+        maze.blit(self.angle_frame_3, (cell_size * 13, cell_size * 10))
+        maze.blit(self.angle_frame_4, (cell_size * 14, cell_size * 10))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 16, size_of_parts * 10))
-        maze.blit(self.frame_4, (size_of_parts * 17, size_of_parts * 10))
-        maze.blit(self.frame_4, (size_of_parts * 18, size_of_parts * 10))
+        maze.blit(self.angle_frame_3, (cell_size * 16, cell_size * 10))
+        maze.blit(self.frame_4, (cell_size * 17, cell_size * 10))
+        maze.blit(self.frame_4, (cell_size * 18, cell_size * 10))
 
-        maze.blit(self.angle_frame_2, (size_of_parts * 19, size_of_parts * 10))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 10))
+        maze.blit(self.angle_frame_2, (cell_size * 19, cell_size * 10))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 10))
 
-        maze.blit(self.wall_3, (size_of_parts * 22, size_of_parts * 10))
+        maze.blit(self.wall_3, (cell_size * 22, cell_size * 10))
 
     def make_12_line(self):
-        maze.blit(self.wall_2, (size_of_parts * 5, size_of_parts * 11))
+        maze.blit(self.wall_2, (cell_size * 5, cell_size * 11))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 11))
-        maze.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 11))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 11))
+        maze.blit(self.frame_2, (cell_size * 8, cell_size * 11))
 
-        maze.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 11))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 11))
+        maze.blit(self.frame_1, (cell_size * 19, cell_size * 11))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 11))
 
-        maze.blit(self.wall_3, (size_of_parts * 22, size_of_parts * 11))
+        maze.blit(self.wall_3, (cell_size * 22, cell_size * 11))
 
     def make_13_line(self):
-        maze.blit(self.wall_2, (size_of_parts * 5, size_of_parts * 12))
+        maze.blit(self.wall_2, (cell_size * 5, cell_size * 12))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 12))
-        maze.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 12))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 12))
+        maze.blit(self.frame_2, (cell_size * 8, cell_size * 12))
 
-        maze.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 12))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 12))
+        maze.blit(self.frame_1, (cell_size * 19, cell_size * 12))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 12))
 
-        maze.blit(self.wall_3, (size_of_parts * 22, size_of_parts * 12))
+        maze.blit(self.wall_3, (cell_size * 22, cell_size * 12))
 
     def make_14_line(self):
         for i in range(0, 5):
-            maze.blit(self.wall_1, (size_of_parts * i, size_of_parts * 13))
-        maze.blit(self.angle_frame_4, (size_of_parts * 5, size_of_parts * 13))
+            maze.blit(self.wall_1, (cell_size * i, cell_size * 13))
+        maze.blit(self.angle_frame_4, (cell_size * 5, cell_size * 13))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 7, size_of_parts * 13))
-        maze.blit(self.angle_frame_4, (size_of_parts * 8, size_of_parts * 13))
+        maze.blit(self.angle_frame_3, (cell_size * 7, cell_size * 13))
+        maze.blit(self.angle_frame_4, (cell_size * 8, cell_size * 13))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 19, size_of_parts * 13))
-        maze.blit(self.angle_frame_4, (size_of_parts * 20, size_of_parts * 13))
+        maze.blit(self.angle_frame_3, (cell_size * 19, cell_size * 13))
+        maze.blit(self.angle_frame_4, (cell_size * 20, cell_size * 13))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 22, size_of_parts * 13))
+        maze.blit(self.angle_frame_3, (cell_size * 22, cell_size * 13))
         for i in range(1, 6):
-            maze.blit(self.wall_1, (size_of_parts * (22 + i), size_of_parts * 13))
+            maze.blit(self.wall_1, (cell_size * (22 + i), cell_size * 13))
 
     def make_15_line(self):
         pass
 
     def make_16_line(self):
         for i in range(0, 5):
-            maze.blit(self.wall_4, (size_of_parts * i, size_of_parts * 15))
-        maze.blit(self.angle_frame_2, (size_of_parts * 5, size_of_parts * 15))
+            maze.blit(self.wall_4, (cell_size * i, cell_size * 15))
+        maze.blit(self.angle_frame_2, (cell_size * 5, cell_size * 15))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 7, size_of_parts * 15))
-        maze.blit(self.angle_frame_2, (size_of_parts * 8, size_of_parts * 15))
+        maze.blit(self.angle_frame_1, (cell_size * 7, cell_size * 15))
+        maze.blit(self.angle_frame_2, (cell_size * 8, cell_size * 15))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 19, size_of_parts * 15))
-        maze.blit(self.angle_frame_2, (size_of_parts * 20, size_of_parts * 15))
+        maze.blit(self.angle_frame_1, (cell_size * 19, cell_size * 15))
+        maze.blit(self.angle_frame_2, (cell_size * 20, cell_size * 15))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 22, size_of_parts * 15))
+        maze.blit(self.angle_frame_1, (cell_size * 22, cell_size * 15))
         for i in range(1, 6):
-            maze.blit(self.wall_4, (size_of_parts * (22 + i), size_of_parts * 15))
+            maze.blit(self.wall_4, (cell_size * (22 + i), cell_size * 15))
 
     def make_17_line(self):
-        maze.blit(self.wall_2, (size_of_parts * 5, size_of_parts * 16))
+        maze.blit(self.wall_2, (cell_size * 5, cell_size * 16))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 16))
-        maze.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 16))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 16))
+        maze.blit(self.frame_2, (cell_size * 8, cell_size * 16))
 
-        maze.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 16))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 16))
+        maze.blit(self.frame_1, (cell_size * 19, cell_size * 16))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 16))
 
-        maze.blit(self.wall_3, (size_of_parts * 22, size_of_parts * 16))
+        maze.blit(self.wall_3, (cell_size * 22, cell_size * 16))
 
     def make_18_line(self):
-        maze.blit(self.wall_2, (size_of_parts * 5, size_of_parts * 17))
+        maze.blit(self.wall_2, (cell_size * 5, cell_size * 17))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 17))
-        maze.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 17))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 17))
+        maze.blit(self.frame_2, (cell_size * 8, cell_size * 17))
 
-        maze.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 17))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 17))
+        maze.blit(self.frame_1, (cell_size * 19, cell_size * 17))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 17))
 
-        maze.blit(self.wall_3, (size_of_parts * 22, size_of_parts * 17))
+        maze.blit(self.wall_3, (cell_size * 22, cell_size * 17))
 
     def make_19_line(self):
-        maze.blit(self.wall_2, (size_of_parts * 5, size_of_parts * 18))
+        maze.blit(self.wall_2, (cell_size * 5, cell_size * 18))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 18))
-        maze.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 18))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 18))
+        maze.blit(self.frame_2, (cell_size * 8, cell_size * 18))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 10, size_of_parts * 18))
+        maze.blit(self.angle_frame_1, (cell_size * 10, cell_size * 18))
         for i in range(1, 7):
-            maze.blit(self.frame_3, (size_of_parts * (10 + i), size_of_parts * 18))
-        maze.blit(self.angle_frame_2, (size_of_parts * 17, size_of_parts * 18))
+            maze.blit(self.frame_3, (cell_size * (10 + i), cell_size * 18))
+        maze.blit(self.angle_frame_2, (cell_size * 17, cell_size * 18))
 
-        maze.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 18))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 18))
+        maze.blit(self.frame_1, (cell_size * 19, cell_size * 18))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 18))
 
-        maze.blit(self.wall_3, (size_of_parts * 22, size_of_parts * 18))
+        maze.blit(self.wall_3, (cell_size * 22, cell_size * 18))
 
     def make_20_line(self):
-        maze.blit(self.angle_1, (0, size_of_parts * 19))
+        maze.blit(self.angle_1, (0, cell_size * 19))
 
         for i in range(1, 5):
-            maze.blit(self.wall_1, (size_of_parts * i, size_of_parts * 19))
-        maze.blit(self.angle_frame_4, (size_of_parts * 5, size_of_parts * 19))
+            maze.blit(self.wall_1, (cell_size * i, cell_size * 19))
+        maze.blit(self.angle_frame_4, (cell_size * 5, cell_size * 19))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 7, size_of_parts * 19))
-        maze.blit(self.angle_frame_4, (size_of_parts * 8, size_of_parts * 19))
+        maze.blit(self.angle_frame_3, (cell_size * 7, cell_size * 19))
+        maze.blit(self.angle_frame_4, (cell_size * 8, cell_size * 19))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 10, size_of_parts * 19))
-        maze.blit(self.frame_4, (size_of_parts * 11, size_of_parts * 19))
-        maze.blit(self.frame_4, (size_of_parts * 12, size_of_parts * 19))
-        maze.blit(self.angle_frame_2, (size_of_parts * 13, size_of_parts * 19))
-        maze.blit(self.angle_frame_1, (size_of_parts * 14, size_of_parts * 19))
-        maze.blit(self.frame_4, (size_of_parts * 15, size_of_parts * 19))
-        maze.blit(self.frame_4, (size_of_parts * 16, size_of_parts * 19))
-        maze.blit(self.angle_frame_4, (size_of_parts * 17, size_of_parts * 19))
+        maze.blit(self.angle_frame_3, (cell_size * 10, cell_size * 19))
+        maze.blit(self.frame_4, (cell_size * 11, cell_size * 19))
+        maze.blit(self.frame_4, (cell_size * 12, cell_size * 19))
+        maze.blit(self.angle_frame_2, (cell_size * 13, cell_size * 19))
+        maze.blit(self.angle_frame_1, (cell_size * 14, cell_size * 19))
+        maze.blit(self.frame_4, (cell_size * 15, cell_size * 19))
+        maze.blit(self.frame_4, (cell_size * 16, cell_size * 19))
+        maze.blit(self.angle_frame_4, (cell_size * 17, cell_size * 19))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 19, size_of_parts * 19))
-        maze.blit(self.angle_frame_4, (size_of_parts * 20, size_of_parts * 19))
+        maze.blit(self.angle_frame_3, (cell_size * 19, cell_size * 19))
+        maze.blit(self.angle_frame_4, (cell_size * 20, cell_size * 19))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 22, size_of_parts * 19))
+        maze.blit(self.angle_frame_3, (cell_size * 22, cell_size * 19))
         for i in range(1, 5):
-            maze.blit(self.wall_1, (size_of_parts * (22 + i), size_of_parts * 19))
+            maze.blit(self.wall_1, (cell_size * (22 + i), cell_size * 19))
 
-        maze.blit(self.angle_2, (size_of_parts * 27, size_of_parts * 19))
+        maze.blit(self.angle_2, (cell_size * 27, cell_size * 19))
 
     def make_21_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 20))
+        maze.blit(self.wall_2, (0, cell_size * 20))
 
-        maze.blit(self.frame_2, (size_of_parts * 13, size_of_parts * 20))
-        maze.blit(self.frame_1, (size_of_parts * 14, size_of_parts * 20))
+        maze.blit(self.frame_2, (cell_size * 13, cell_size * 20))
+        maze.blit(self.frame_1, (cell_size * 14, cell_size * 20))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 20))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 20))
 
     def make_22_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 21))
+        maze.blit(self.wall_2, (0, cell_size * 21))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 2, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 3, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 4, size_of_parts * 21))
-        maze.blit(self.angle_frame_2, (size_of_parts * 5, size_of_parts * 21))
+        maze.blit(self.angle_frame_1, (cell_size * 2, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 3, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 4, cell_size * 21))
+        maze.blit(self.angle_frame_2, (cell_size * 5, cell_size * 21))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 7, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 8, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 9, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 10, size_of_parts * 21))
-        maze.blit(self.angle_frame_2, (size_of_parts * 11, size_of_parts * 21))
+        maze.blit(self.angle_frame_1, (cell_size * 7, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 8, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 9, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 10, cell_size * 21))
+        maze.blit(self.angle_frame_2, (cell_size * 11, cell_size * 21))
 
-        maze.blit(self.frame_2, (size_of_parts * 13, size_of_parts * 21))
-        maze.blit(self.frame_1, (size_of_parts * 14, size_of_parts * 21))
+        maze.blit(self.frame_2, (cell_size * 13, cell_size * 21))
+        maze.blit(self.frame_1, (cell_size * 14, cell_size * 21))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 16, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 17, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 18, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 19, size_of_parts * 21))
-        maze.blit(self.angle_frame_2, (size_of_parts * 20, size_of_parts * 21))
+        maze.blit(self.angle_frame_1, (cell_size * 16, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 17, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 18, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 19, cell_size * 21))
+        maze.blit(self.angle_frame_2, (cell_size * 20, cell_size * 21))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 22, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 23, size_of_parts * 21))
-        maze.blit(self.frame_4, (size_of_parts * 24, size_of_parts * 21))
-        maze.blit(self.angle_frame_2, (size_of_parts * 25, size_of_parts * 21))
+        maze.blit(self.angle_frame_1, (cell_size * 22, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 23, cell_size * 21))
+        maze.blit(self.frame_4, (cell_size * 24, cell_size * 21))
+        maze.blit(self.angle_frame_2, (cell_size * 25, cell_size * 21))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 21))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 21))
 
     def make_23_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 22))
+        maze.blit(self.wall_2, (0, cell_size * 22))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 2, size_of_parts * 22))
-        maze.blit(self.frame_3, (size_of_parts * 3, size_of_parts * 22))
-        maze.blit(self.angle_frame_2, (size_of_parts * 4, size_of_parts * 22))
-        maze.blit(self.frame_2, (size_of_parts * 5, size_of_parts * 22))
+        maze.blit(self.angle_frame_3, (cell_size * 2, cell_size * 22))
+        maze.blit(self.frame_3, (cell_size * 3, cell_size * 22))
+        maze.blit(self.angle_frame_2, (cell_size * 4, cell_size * 22))
+        maze.blit(self.frame_2, (cell_size * 5, cell_size * 22))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 7, size_of_parts * 22))
-        maze.blit(self.frame_3, (size_of_parts * 8, size_of_parts * 22))
-        maze.blit(self.frame_3, (size_of_parts * 9, size_of_parts * 22))
-        maze.blit(self.frame_3, (size_of_parts * 10, size_of_parts * 22))
-        maze.blit(self.angle_frame_4, (size_of_parts * 11, size_of_parts * 22))
+        maze.blit(self.angle_frame_3, (cell_size * 7, cell_size * 22))
+        maze.blit(self.frame_3, (cell_size * 8, cell_size * 22))
+        maze.blit(self.frame_3, (cell_size * 9, cell_size * 22))
+        maze.blit(self.frame_3, (cell_size * 10, cell_size * 22))
+        maze.blit(self.angle_frame_4, (cell_size * 11, cell_size * 22))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 13, size_of_parts * 22))
-        maze.blit(self.angle_frame_4, (size_of_parts * 14, size_of_parts * 22))
+        maze.blit(self.angle_frame_3, (cell_size * 13, cell_size * 22))
+        maze.blit(self.angle_frame_4, (cell_size * 14, cell_size * 22))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 16, size_of_parts * 22))
-        maze.blit(self.frame_3, (size_of_parts * 17, size_of_parts * 22))
-        maze.blit(self.frame_3, (size_of_parts * 18, size_of_parts * 22))
-        maze.blit(self.frame_3, (size_of_parts * 19, size_of_parts * 22))
-        maze.blit(self.angle_frame_4, (size_of_parts * 20, size_of_parts * 22))
+        maze.blit(self.angle_frame_3, (cell_size * 16, cell_size * 22))
+        maze.blit(self.frame_3, (cell_size * 17, cell_size * 22))
+        maze.blit(self.frame_3, (cell_size * 18, cell_size * 22))
+        maze.blit(self.frame_3, (cell_size * 19, cell_size * 22))
+        maze.blit(self.angle_frame_4, (cell_size * 20, cell_size * 22))
 
-        maze.blit(self.frame_1, (size_of_parts * 22, size_of_parts * 22))
-        maze.blit(self.angle_frame_1, (size_of_parts * 23, size_of_parts * 22))
-        maze.blit(self.frame_3, (size_of_parts * 24, size_of_parts * 22))
-        maze.blit(self.angle_frame_4, (size_of_parts * 25, size_of_parts * 22))
+        maze.blit(self.frame_1, (cell_size * 22, cell_size * 22))
+        maze.blit(self.angle_frame_1, (cell_size * 23, cell_size * 22))
+        maze.blit(self.frame_3, (cell_size * 24, cell_size * 22))
+        maze.blit(self.angle_frame_4, (cell_size * 25, cell_size * 22))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 22))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 22))
 
     def make_24_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 23))
+        maze.blit(self.wall_2, (0, cell_size * 23))
 
-        maze.blit(self.frame_1, (size_of_parts * 4, size_of_parts * 23))
-        maze.blit(self.frame_2, (size_of_parts * 5, size_of_parts * 23))
+        maze.blit(self.frame_1, (cell_size * 4, cell_size * 23))
+        maze.blit(self.frame_2, (cell_size * 5, cell_size * 23))
 
-        maze.blit(self.frame_1, (size_of_parts * 22, size_of_parts * 23))
-        maze.blit(self.frame_2, (size_of_parts * 23, size_of_parts * 23))
+        maze.blit(self.frame_1, (cell_size * 22, cell_size * 23))
+        maze.blit(self.frame_2, (cell_size * 23, cell_size * 23))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 23))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 23))
 
     def make_25_line(self):
-        maze.blit(self.spicific_angle_3, (0, size_of_parts * 24))
-        maze.blit(self.frame_4, (size_of_parts, size_of_parts * 24))
-        maze.blit(self.angle_frame_2, (size_of_parts * 2, size_of_parts * 24))
+        maze.blit(self.spicific_angle_3, (0, cell_size * 24))
+        maze.blit(self.frame_4, (cell_size, cell_size * 24))
+        maze.blit(self.angle_frame_2, (cell_size * 2, cell_size * 24))
 
-        maze.blit(self.frame_1, (size_of_parts * 4, size_of_parts * 24))
-        maze.blit(self.frame_2, (size_of_parts * 5, size_of_parts * 24))
+        maze.blit(self.frame_1, (cell_size * 4, cell_size * 24))
+        maze.blit(self.frame_2, (cell_size * 5, cell_size * 24))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 7, size_of_parts * 24))
-        maze.blit(self.angle_frame_2, (size_of_parts * 8, size_of_parts * 24))
+        maze.blit(self.angle_frame_1, (cell_size * 7, cell_size * 24))
+        maze.blit(self.angle_frame_2, (cell_size * 8, cell_size * 24))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 10, size_of_parts * 24))
+        maze.blit(self.angle_frame_1, (cell_size * 10, cell_size * 24))
         for i in range(1, 7):
-            maze.blit(self.frame_3, (size_of_parts * (10 + i), size_of_parts * 24))
-        maze.blit(self.angle_frame_2, (size_of_parts * 17, size_of_parts * 24))
+            maze.blit(self.frame_3, (cell_size * (10 + i), cell_size * 24))
+        maze.blit(self.angle_frame_2, (cell_size * 17, cell_size * 24))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 19, size_of_parts * 24))
-        maze.blit(self.angle_frame_2, (size_of_parts * 20, size_of_parts * 24))
+        maze.blit(self.angle_frame_1, (cell_size * 19, cell_size * 24))
+        maze.blit(self.angle_frame_2, (cell_size * 20, cell_size * 24))
 
-        maze.blit(self.frame_1, (size_of_parts * 22, size_of_parts * 24))
-        maze.blit(self.frame_2, (size_of_parts * 23, size_of_parts * 24))
+        maze.blit(self.frame_1, (cell_size * 22, cell_size * 24))
+        maze.blit(self.frame_2, (cell_size * 23, cell_size * 24))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 25, size_of_parts * 24))
-        maze.blit(self.frame_4, (size_of_parts * 26, size_of_parts * 24))
-        maze.blit(self.spicific_angle_4, (size_of_parts * 27, size_of_parts * 24))
+        maze.blit(self.angle_frame_1, (cell_size * 25, cell_size * 24))
+        maze.blit(self.frame_4, (cell_size * 26, cell_size * 24))
+        maze.blit(self.spicific_angle_4, (cell_size * 27, cell_size * 24))
 
     def make_26_line(self):
-        maze.blit(self.spicific_angle_5, (0, size_of_parts * 25))
-        maze.blit(self.frame_3, (size_of_parts, size_of_parts * 25))
-        maze.blit(self.angle_frame_4, (size_of_parts * 2, size_of_parts * 25))
+        maze.blit(self.spicific_angle_5, (0, cell_size * 25))
+        maze.blit(self.frame_3, (cell_size, cell_size * 25))
+        maze.blit(self.angle_frame_4, (cell_size * 2, cell_size * 25))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 4, size_of_parts * 25))
-        maze.blit(self.angle_frame_4, (size_of_parts * 5, size_of_parts * 25))
+        maze.blit(self.angle_frame_3, (cell_size * 4, cell_size * 25))
+        maze.blit(self.angle_frame_4, (cell_size * 5, cell_size * 25))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 25))
-        maze.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 25))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 25))
+        maze.blit(self.frame_2, (cell_size * 8, cell_size * 25))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 10, size_of_parts * 25))
+        maze.blit(self.angle_frame_3, (cell_size * 10, cell_size * 25))
         for i in range(1, 7):
-            maze.blit(self.frame_4, (size_of_parts * (10 + i), size_of_parts * 25))
-        maze.blit(self.angle_frame_2, (size_of_parts * 13, size_of_parts * 25))
-        maze.blit(self.angle_frame_1, (size_of_parts * 14, size_of_parts * 25))
-        maze.blit(self.angle_frame_4, (size_of_parts * 17, size_of_parts * 25))
+            maze.blit(self.frame_4, (cell_size * (10 + i), cell_size * 25))
+        maze.blit(self.angle_frame_2, (cell_size * 13, cell_size * 25))
+        maze.blit(self.angle_frame_1, (cell_size * 14, cell_size * 25))
+        maze.blit(self.angle_frame_4, (cell_size * 17, cell_size * 25))
 
-        maze.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 25))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 25))
+        maze.blit(self.frame_1, (cell_size * 19, cell_size * 25))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 25))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 22, size_of_parts * 25))
-        maze.blit(self.angle_frame_4, (size_of_parts * 23, size_of_parts * 25))
+        maze.blit(self.angle_frame_3, (cell_size * 22, cell_size * 25))
+        maze.blit(self.angle_frame_4, (cell_size * 23, cell_size * 25))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 25, size_of_parts * 25))
-        maze.blit(self.frame_3, (size_of_parts * 26, size_of_parts * 25))
-        maze.blit(self.spicific_angle_6, (size_of_parts * 27, size_of_parts * 25))
+        maze.blit(self.angle_frame_3, (cell_size * 25, cell_size * 25))
+        maze.blit(self.frame_3, (cell_size * 26, cell_size * 25))
+        maze.blit(self.spicific_angle_6, (cell_size * 27, cell_size * 25))
 
     def make_27_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 26))
+        maze.blit(self.wall_2, (0, cell_size * 26))
 
-        maze.blit(self.frame_1, (size_of_parts * 7, size_of_parts * 26))
-        maze.blit(self.frame_2, (size_of_parts * 8, size_of_parts * 26))
+        maze.blit(self.frame_1, (cell_size * 7, cell_size * 26))
+        maze.blit(self.frame_2, (cell_size * 8, cell_size * 26))
 
-        maze.blit(self.frame_1, (size_of_parts * 13, size_of_parts * 26))
-        maze.blit(self.frame_2, (size_of_parts * 14, size_of_parts * 26))
+        maze.blit(self.frame_1, (cell_size * 13, cell_size * 26))
+        maze.blit(self.frame_2, (cell_size * 14, cell_size * 26))
 
-        maze.blit(self.frame_1, (size_of_parts * 19, size_of_parts * 26))
-        maze.blit(self.frame_2, (size_of_parts * 20, size_of_parts * 26))
+        maze.blit(self.frame_1, (cell_size * 19, cell_size * 26))
+        maze.blit(self.frame_2, (cell_size * 20, cell_size * 26))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 26))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 26))
 
     def make_28_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 27))
+        maze.blit(self.wall_2, (0, cell_size * 27))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 2, size_of_parts * 27))
+        maze.blit(self.angle_frame_1, (cell_size * 2, cell_size * 27))
         for i in range(1, 5):
-            maze.blit(self.frame_3, (size_of_parts * (2 + i), size_of_parts * 27))
-        maze.blit(self.angle_frame_4, (size_of_parts * 7, size_of_parts * 27))
-        maze.blit(self.angle_frame_3, (size_of_parts * 8, size_of_parts * 27))
-        maze.blit(self.frame_3, (size_of_parts * 9, size_of_parts * 27))
-        maze.blit(self.frame_3, (size_of_parts * 10, size_of_parts * 27))
-        maze.blit(self.angle_frame_2, (size_of_parts * 11, size_of_parts * 27))
+            maze.blit(self.frame_3, (cell_size * (2 + i), cell_size * 27))
+        maze.blit(self.angle_frame_4, (cell_size * 7, cell_size * 27))
+        maze.blit(self.angle_frame_3, (cell_size * 8, cell_size * 27))
+        maze.blit(self.frame_3, (cell_size * 9, cell_size * 27))
+        maze.blit(self.frame_3, (cell_size * 10, cell_size * 27))
+        maze.blit(self.angle_frame_2, (cell_size * 11, cell_size * 27))
 
-        maze.blit(self.frame_1, (size_of_parts * 13, size_of_parts * 27))
-        maze.blit(self.frame_2, (size_of_parts * 14, size_of_parts * 27))
+        maze.blit(self.frame_1, (cell_size * 13, cell_size * 27))
+        maze.blit(self.frame_2, (cell_size * 14, cell_size * 27))
 
-        maze.blit(self.angle_frame_1, (size_of_parts * 16, size_of_parts * 27))
-        maze.blit(self.frame_3, (size_of_parts * 17, size_of_parts * 27))
-        maze.blit(self.frame_3, (size_of_parts * 18, size_of_parts * 27))
-        maze.blit(self.angle_frame_4, (size_of_parts * 19, size_of_parts * 27))
-        maze.blit(self.angle_frame_3, (size_of_parts * 20, size_of_parts * 27))
+        maze.blit(self.angle_frame_1, (cell_size * 16, cell_size * 27))
+        maze.blit(self.frame_3, (cell_size * 17, cell_size * 27))
+        maze.blit(self.frame_3, (cell_size * 18, cell_size * 27))
+        maze.blit(self.angle_frame_4, (cell_size * 19, cell_size * 27))
+        maze.blit(self.angle_frame_3, (cell_size * 20, cell_size * 27))
         for i in range(1, 5):
-            maze.blit(self.frame_3, (size_of_parts * (20 + i), size_of_parts * 27))
-        maze.blit(self.angle_frame_2, (size_of_parts * 25, size_of_parts * 27))
+            maze.blit(self.frame_3, (cell_size * (20 + i), cell_size * 27))
+        maze.blit(self.angle_frame_2, (cell_size * 25, cell_size * 27))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 27))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 27))
 
     def make_29_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 28))
+        maze.blit(self.wall_2, (0, cell_size * 28))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 2, size_of_parts * 28))
+        maze.blit(self.angle_frame_3, (cell_size * 2, cell_size * 28))
         for i in range(1, 9):
-            maze.blit(self.frame_4, (size_of_parts * (2 + i), size_of_parts * 28))
-        maze.blit(self.angle_frame_4, (size_of_parts * 11, size_of_parts * 28))
+            maze.blit(self.frame_4, (cell_size * (2 + i), cell_size * 28))
+        maze.blit(self.angle_frame_4, (cell_size * 11, cell_size * 28))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 13, size_of_parts * 28))
-        maze.blit(self.angle_frame_4, (size_of_parts * 14, size_of_parts * 28))
+        maze.blit(self.angle_frame_3, (cell_size * 13, cell_size * 28))
+        maze.blit(self.angle_frame_4, (cell_size * 14, cell_size * 28))
 
-        maze.blit(self.angle_frame_3, (size_of_parts * 16, size_of_parts * 28))
+        maze.blit(self.angle_frame_3, (cell_size * 16, cell_size * 28))
         for i in range(1, 9):
-            maze.blit(self.frame_4, (size_of_parts * (16 + i), size_of_parts * 28))
-        maze.blit(self.angle_frame_4, (size_of_parts * 25, size_of_parts * 28))
+            maze.blit(self.frame_4, (cell_size * (16 + i), cell_size * 28))
+        maze.blit(self.angle_frame_4, (cell_size * 25, cell_size * 28))
 
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 28))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 28))
 
     def make_30_line(self):
-        maze.blit(self.wall_2, (0, size_of_parts * 29))
-        maze.blit(self.wall_3, (size_of_parts * 27, size_of_parts * 29))
+        maze.blit(self.wall_2, (0, cell_size * 29))
+        maze.blit(self.wall_3, (cell_size * 27, cell_size * 29))
 
     def make_31_line(self):
-        maze.blit(self.angle_3, (0, size_of_parts * 30))
+        maze.blit(self.angle_3, (0, cell_size * 30))
         for i in range(1, 27):
-            maze.blit(self.wall_4, (size_of_parts * i, size_of_parts * 30))
-        maze.blit(self.angle_4, (size_of_parts * 27, size_of_parts * 30))
+            maze.blit(self.wall_4, (cell_size * i, cell_size * 30))
+        maze.blit(self.angle_4, (cell_size * 27, cell_size * 30))
 
 def load_image(name, color_key=None):
     fullname = os.path.join(name)
@@ -785,20 +785,22 @@ class Ghost:
         self.in_the_game = False  # призрак в игре/не в игре
     
     def move(self, end=None):
-        coord_y = int((self.y + 11) // size_of_parts)
-        coord_x = int((self.x + 11) // size_of_parts)
+        coord_y = int((self.y + 11) // cell_size)
+        coord_x = int((self.x + 11) // cell_size)
         try:
             if self.counter == 0:
                 if end:
-                    self.path = iter(find_path(
+                    pre_path = find_path(
                         nodes_matrix[coord_y][coord_x],
-                        nodes_matrix[int((end[1] + 11) // size_of_parts)]
-                                    [int((end[0] + 11) // size_of_parts)]
-                    ))
+                        nodes_matrix[int((end[1] + 11) // cell_size)]
+                                    [int((end[0] + 11) // cell_size)])
+                    if pre_path:
+                        self.path = iter(pre_path)
                 self.direction = next(self.path)
                 self.counter = 8 if self.angry else 16
-            self.x += self.direction[0] * (3 if self.angry else 1.5)
-            self.y += self.direction[1] * (3 if self.angry else 1.5)
+                self.speed = 3 if self.angry else 1.5
+            self.x += self.direction[0] * self.speed
+            self.y += self.direction[1] * self.speed
             self.rect.x = self.x
             self.rect.y = self.y
             self.counter -= 1
@@ -893,9 +895,10 @@ if __name__ == '__main__':
     running = True
     point = load_image('data/other/s_food.png', -1)
     points_sprite = pygame.sprite.Group()
+    
 
-    pacman = Pac_man(size_of_parts * 14 - 11, size_of_parts * 23 - 11, (0, 0))
-    blinky = Blinky(size_of_parts * 1 - 11, size_of_parts * 1 - 11)
+    pacman = Pac_man(cell_size * 14 - 11, cell_size * 23 - 11, (0, 0))
+    blinky = Blinky(cell_size * 1 - 11, cell_size * 1 - 11)
 
     clock = pygame.time.Clock()
     global_frame, frame = 0, 0
@@ -929,6 +932,8 @@ if __name__ == '__main__':
                     pacman.animation = [load_image('data/pacman/down1.png', -1),
                                         load_image('data/pacman/down2.png', -1),
                                         load_image('data/pacman/full.png')]
+                elif event.key == pygame.K_SPACE:
+                    blinky.angry = not blinky.angry
 
         if global_frame % 4 == 0:
             frame += 1
