@@ -811,7 +811,7 @@ class Ghost:
 
     def move(self, end=None):
         global disarming, seconds, level
-        coord_y = int((self.y + 11) // cell_size)
+        coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
         coord_x = int((self.x + 11) // cell_size)
         try:
             if self.counter == 0:
@@ -823,8 +823,8 @@ class Ghost:
                     if pre_path:
                         self.path = iter(pre_path)
                 self.direction = next(self.path)
-                self.counter = (8 if self.angry else 16) if not disarming else 24
-                self.speed = (3 if self.angry else 1.5) if not disarming else 1
+                self.counter = (12 if self.angry else 16) if not disarming else 24
+                self.speed = (2 if self.angry else 1.5) if not disarming else 1
             self.x += self.direction[0] * self.speed
             self.y += self.direction[1] * self.speed
             self.rect.x = self.x
@@ -978,19 +978,18 @@ if __name__ == '__main__':
     for line in nodes_matrix:
         for cell in line:
             if cell.has_food:
-                food.append(Point(cell.x * cell_size, cell.y * cell_size))
+                food.append(Point(cell.x * cell_size, cell.y * cell_size + 3 * cell_size))
             elif cell.has_energy:
-                food.append(Energizer(cell.x * cell_size, cell.y * cell_size))
+                food.append(Energizer(cell.x * cell_size, cell.y * cell_size + 3 * cell_size))
 
     pacman = Pac_man(cell_size * 14 - 11, cell_size * 23 - 11, (0, 0))
-    blinky = Blinky(cell_size * 1 - 11, cell_size * 1 - 11)
+    blinky = Blinky(cell_size * 1 - 11, cell_size * 1 - 11 + 3 * cell_size)
     points_sprite.draw(screen)
 
     clock = pygame.time.Clock()
     global_frame, frame = 0, 0
     screen.fill((0, 0, 0))
     ex = Field()
-    blinky.move((pacman.x, pacman.y))
     while running:
         ex.update()
         for event in pygame.event.get():
