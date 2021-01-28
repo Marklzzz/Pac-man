@@ -755,10 +755,10 @@ class Field:
             maze.blit(self.wall_4, (cell_size * i, cell_size * 30))
         maze.blit(self.angle_4, (cell_size * 27, cell_size * 30))
 
-def load_image(name, color_key=None):
+def load_image(name, color_key=None, size=None):
     fullname = os.path.join(name)
     image = pygame.image.load(fullname)
-    image = pygame.transform.scale(image, (45, 45))
+    image = pygame.transform.scale(image, (45, 45) if not size else size)
 
     if color_key is not None:
         if color_key == -1:
@@ -780,11 +780,14 @@ class Ghost:
         self.counter = 0
         self.path = iter([])
         
+        self.last_seconds = 0
+        
         self.angry = False  # злой режим для Блинки
         self.dispersion = True  # режим разбегания
         self.in_the_game = False  # призрак в игре/не в игре
     
     def move(self, end=None):
+        global disarming, seconds, level
         coord_y = int((self.y + 11) // cell_size)
         coord_x = int((self.x + 11) // cell_size)
         try:
@@ -797,8 +800,8 @@ class Ghost:
                     if pre_path:
                         self.path = iter(pre_path)
                 self.direction = next(self.path)
-                self.counter = 8 if self.angry else 16
-                self.speed = 3 if self.angry else 1.5
+                self.counter = (8 if self.angry else 16) if not disarming else 24
+                self.speed = (3 if self.angry else 1.5) if not disarming else 1
             self.x += self.direction[0] * self.speed
             self.y += self.direction[1] * self.speed
             self.rect.x = self.x
@@ -806,6 +809,22 @@ class Ghost:
             self.counter -= 1
         except StopIteration:
             pass
+        
+        if disarming:
+            if self.last_seconds == 0:
+                self.last_seconds = seconds
+            
+            time_shift = round(10 - level // 2 - (seconds - self.last_seconds), 2)
+                
+            if time_shift in [10, 2.97, 2.32, 1.65, 0.98, 0.33]:
+                self.animation = [load_image('data/ghosts/killing/disarmed1.png'),
+                                  load_image('data/ghosts/killing/disarmed2.png')]
+            elif time_shift in [3.3, 2.65, 1.98, 1.32, 0.65]:
+                self.animation = [load_image('data/ghosts/killing/end-disarmed1.png'),
+                                  load_image('data/ghosts/killing/end-disarmed2.png')]
+            elif time_shift == 0:
+                disarming = False
+                self.last_seconds = 0
             
 
 class Blinky(Ghost):
@@ -814,6 +833,8 @@ class Blinky(Ghost):
         self.animation = [load_image('data/ghosts/blinky/right1.png'), load_image('data/ghosts/blinky/right2.png')]
     
     def move(self, end=None):
+        global disarming
+        
         super().move(end)
         if self.direction == (1, 0):
             side = 'right'
@@ -823,8 +844,11 @@ class Blinky(Ghost):
             side = 'down'
         elif self.direction == (0, -1):
             side = 'up'
-        self.animation = [load_image('data/ghosts/blinky/{}{}1.png'.format('angry_' if self.angry else '', side)),
-                          load_image('data/ghosts/blinky/{}{}2.png'.format('angry_' if self.angry else '', side))]
+            
+        if not disarming:
+            angry = 'angry_' if self.angry else ''
+            self.animation = [load_image('data/ghosts/blinky/{}{}1.png'.format(angry, side)),
+                              load_image('data/ghosts/blinky/{}{}2.png'.format(angry, side))]
             
 
 class Pac_man:
@@ -855,14 +879,16 @@ class Object(pygame.sprite.Sprite):
     def __init__(self, x, y, *groups):
         super().__init__(*groups)
         self.x, self.y = x, y
+        self.eaten = False
 
     def update(self):
-        if pygame.sprite.collide_mask(self, pacman):
-            self.kill()
+        if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
+            self.eaten = True
+            points_sprite.remove(self)
 
 
 class Point(Object, pygame.sprite.Sprite):
-    image = load_image('data/other/s_food.png', -1)
+    image = load_image('data/other/s_food.png', -1, (cell_size, cell_size))
 
     def __init__(self, x, y):
         super().__init__(x, y, points_sprite)
@@ -871,10 +897,11 @@ class Point(Object, pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect.x = x
         self.rect.y = y
+        points_sprite.add(self)
 
 
 class Energizer(Object, pygame.sprite.Sprite):
-    image = load_image('data/other/b_food.png', -1)
+    image = load_image('data/other/b_food.png', -1, (cell_size, cell_size))
 
     def __init__(self, x, y):
         super().__init__(x, y, points_sprite)
@@ -883,7 +910,13 @@ class Energizer(Object, pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect.x = x
         self.rect.y = y
-
+        points_sprite.add(self)
+    
+    def update(self):
+        global disarming
+        if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
+            disarming = True
+            super().update()
 
 class Fruits(Object):
     def __init__(self, x, y):
@@ -893,12 +926,22 @@ class Fruits(Object):
 if __name__ == '__main__':
     fps = 60
     running = True
-    point = load_image('data/other/s_food.png', -1)
+    disarming = False
+    level, seconds = 1, 0
     points_sprite = pygame.sprite.Group()
+    food = []
     
+    for line in nodes_matrix:
+        for cell in line:
+            if cell.has_food:
+                food.append(Point(cell.x * cell_size, cell.y * cell_size))
+            elif cell.has_energy:
+                food.append(Energizer(cell.x * cell_size, cell.y * cell_size))
+                
 
     pacman = Pac_man(cell_size * 14 - 11, cell_size * 23 - 11, (0, 0))
     blinky = Blinky(cell_size * 1 - 11, cell_size * 1 - 11)
+    points_sprite.draw(screen)
 
     clock = pygame.time.Clock()
     global_frame, frame = 0, 0
@@ -941,9 +984,13 @@ if __name__ == '__main__':
         screen.blit(pacman.animation[frame % 3], (pacman.x, pacman.y))
         screen.blit(blinky.animation[frame % 2], (blinky.x, blinky.y))
         global_frame += 1
+        seconds = global_frame / fps
         
         pacman.move()
         blinky.move((pacman.x, pacman.y))
+        
+        for f in food:
+            f.update()
 
         clock.tick(fps)
         pygame.display.flip()
