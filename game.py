@@ -884,17 +884,37 @@ class Pac_man:
         self.rect.x = self.x
         self.rect.y = self.y
 
-        self.speed = 180
-        self.direction = direction
+        self.speed = 60
+        self.direction = direction  # это то направление в которое двигается pacman в данный момент
+        self.player_direction = (0, 0)  # направление, куда хочет двигаться игрок
+
+        self.path = [int((self.y + 11) // cell_size), int((self.x + 11) // cell_size)]
 
     def move(self):
-        if self.wall_check():
+        if self.wall_check(self.player_direction):
+            self.direction = self.player_direction
+
+        if self.wall_check(self.direction):
+            self.path = [int((self.y + 11) // cell_size), int((self.x + 11) // cell_size)]
+
             self.x += (self.speed * self.direction[0]) / fps
             self.y += (self.speed * self.direction[1]) / fps
             self.rect.x = self.x
             self.rect.y = self.y
 
-    def wall_check(self):
+    def wall_check(self, direction):  # 1. Есть ли стена 2. Можно ли ещё пододвинуться к стенке 3. Направление
+        if nodes_matrix[self.path[0]][self.path[1] - 1].type == 'wall' and cell_size * self.path[1] - 10 >= self.x and \
+                direction[0] == -1:
+            return False
+        if nodes_matrix[self.path[0]][self.path[1] + 1].type == 'wall' and cell_size * self.path[1] - 10 <= self.x and \
+                direction[0] == 1:
+            return False
+        if nodes_matrix[self.path[0] - 1][self.path[1]].type == 'wall' and cell_size * self.path[0] - 10 >= self.y and \
+                direction[1] == -1:
+            return False
+        if nodes_matrix[self.path[0] + 1][self.path[1]].type == 'wall' and cell_size * self.path[0] - 10 <= self.y and \
+                direction[1] == 1:
+            return False
         return True
 
 
@@ -979,22 +999,22 @@ if __name__ == '__main__':
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    pacman.direction = (-1, 0)
+                    pacman.player_direction = (-1, 0)
                     pacman.animation = [load_image('data/pacman/left1.png', -1),
                                         load_image('data/pacman/left2.png', -1),
                                         load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_RIGHT:
-                    pacman.direction = (1, 0)
+                    pacman.player_direction = (1, 0)
                     pacman.animation = [load_image('data/pacman/right1.png', -1),
                                         load_image('data/pacman/right2.png', -1),
                                         load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_UP:
-                    pacman.direction = (0, -1)
+                    pacman.player_direction = (0, -1)
                     pacman.animation = [load_image('data/pacman/up1.png', -1),
                                         load_image('data/pacman/up2.png', -1),
                                         load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_DOWN:
-                    pacman.direction = (0, 1)
+                    pacman.player_direction = (0, 1)
                     pacman.animation = [load_image('data/pacman/down1.png', -1),
                                         load_image('data/pacman/down2.png', -1),
                                         load_image('data/pacman/full.png')]
@@ -1009,6 +1029,7 @@ if __name__ == '__main__':
         global_frame += 1
         seconds = global_frame / fps
 
+        pacman.move()
         pacman.move()
         blinky.move((pacman.x, pacman.y))
 
