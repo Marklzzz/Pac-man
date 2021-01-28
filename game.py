@@ -450,6 +450,14 @@ class Field:
         maze.blit(self.frame_1, (cell_size * 7, cell_size * 12))
         maze.blit(self.frame_2, (cell_size * 8, cell_size * 12))
 
+        maze.blit(self.angle_frame_1, (cell_size * 10, cell_size * 12))
+        maze.blit(self.wall_4, (cell_size * 11, cell_size * 12))
+        maze.blit(self.wall_4, (cell_size * 12, cell_size * 12))
+
+        maze.blit(self.wall_4, (cell_size * 15, cell_size * 12))
+        maze.blit(self.wall_4, (cell_size * 16, cell_size * 12))
+        maze.blit(self.angle_frame_2, (cell_size * 17, cell_size * 12))
+
         maze.blit(self.frame_1, (cell_size * 19, cell_size * 12))
         maze.blit(self.frame_2, (cell_size * 20, cell_size * 12))
 
@@ -463,6 +471,9 @@ class Field:
         maze.blit(self.angle_frame_3, (cell_size * 7, cell_size * 13))
         maze.blit(self.angle_frame_4, (cell_size * 8, cell_size * 13))
 
+        maze.blit(self.wall_3, (cell_size * 10, cell_size * 13))
+        maze.blit(self.wall_2, (cell_size * 17, cell_size * 13))
+
         maze.blit(self.angle_frame_3, (cell_size * 19, cell_size * 13))
         maze.blit(self.angle_frame_4, (cell_size * 20, cell_size * 13))
 
@@ -471,7 +482,8 @@ class Field:
             maze.blit(self.wall_1, (cell_size * (22 + i), cell_size * 13))
 
     def make_15_line(self):
-        pass
+        maze.blit(self.wall_3, (cell_size * 10, cell_size * 14))
+        maze.blit(self.wall_2, (cell_size * 17, cell_size * 14))
 
     def make_16_line(self):
         for i in range(0, 5):
@@ -480,6 +492,9 @@ class Field:
 
         maze.blit(self.angle_frame_1, (cell_size * 7, cell_size * 15))
         maze.blit(self.angle_frame_2, (cell_size * 8, cell_size * 15))
+
+        maze.blit(self.wall_3, (cell_size * 10, cell_size * 15))
+        maze.blit(self.wall_2, (cell_size * 17, cell_size * 15))
 
         maze.blit(self.angle_frame_1, (cell_size * 19, cell_size * 15))
         maze.blit(self.angle_frame_2, (cell_size * 20, cell_size * 15))
@@ -493,6 +508,15 @@ class Field:
 
         maze.blit(self.frame_1, (cell_size * 7, cell_size * 16))
         maze.blit(self.frame_2, (cell_size * 8, cell_size * 16))
+
+        maze.blit(self.angle_frame_3, (cell_size * 10, cell_size * 16))
+        maze.blit(self.wall_1, (cell_size * 11, cell_size * 16))
+        maze.blit(self.wall_1, (cell_size * 12, cell_size * 16))
+        maze.blit(self.wall_1, (cell_size * 13, cell_size * 16))
+        maze.blit(self.wall_1, (cell_size * 14, cell_size * 16))
+        maze.blit(self.wall_1, (cell_size * 15, cell_size * 16))
+        maze.blit(self.wall_1, (cell_size * 16, cell_size * 16))
+        maze.blit(self.angle_frame_4, (cell_size * 17, cell_size * 16))
 
         maze.blit(self.frame_1, (cell_size * 19, cell_size * 16))
         maze.blit(self.frame_2, (cell_size * 20, cell_size * 16))
