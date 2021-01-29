@@ -877,6 +877,7 @@ class Blinky(Ghost):
 class Pac_man:
     def __init__(self, x, y, direction):
         self.x, self.y = x, y
+        self.frame = 0
 
         self.animation = \
             {
@@ -895,7 +896,7 @@ class Pac_man:
                          load_image('data/pacman/full.png')]
             }
 
-        self.speed = 60
+        self.speed = 1
         self.direction = direction  # это то направление в которое двигается pacman в данный момент
         self.player_direction = (0, 0)  # направление, куда хочет двигаться игрок
 
@@ -904,34 +905,46 @@ class Pac_man:
         self.rect.x = self.x
         self.rect.y = self.y
 
-        self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11 - 3 * cell_size) // cell_size)]
+        self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11) // cell_size)]
 
     def move(self):
         if self.wall_check(self.player_direction):
             self.direction = self.player_direction
 
         if self.wall_check(self.direction):
-            self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11 - 3 * cell_size) // cell_size)]
+            self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11) // cell_size)]
 
-            self.x += (self.speed * self.direction[0]) / fps
-            self.y += (self.speed * self.direction[1]) / fps
+            self.x += (self.speed * self.direction[0])
+            self.y += (self.speed * self.direction[1])
             self.rect.x = self.x
             self.rect.y = self.y
+            if self.x <= 0:
+                self.x = 671
+            if self.x >= 672:
+                self.x = 0
 
     def wall_check(self, direction):  # 1. Есть ли стена 2. Можно ли ещё пододвинуться к стенке 3. Направление
-        if nodes_matrix[self.path[0]][self.path[1] - 1].type == 'wall' and cell_size * self.path[1] - 10 >= self.x and \
-                direction[0] == -1:
-            return False
-        if nodes_matrix[self.path[0]][self.path[1] + 1].type == 'wall' and cell_size * self.path[1] - 10 <= self.x and \
-                direction[0] == 1:
-            return False
-        if nodes_matrix[self.path[0] - 1][self.path[1]].type == 'wall' and cell_size * self.path[0] - 10 >= self.y and \
-                direction[1] == -1:
-            return False
-        if nodes_matrix[self.path[0] + 1][self.path[1]].type == 'wall' and cell_size * self.path[0] - 10 <= self.y and \
-                direction[1] == 1:
-            return False
+        try:
+            if nodes_matrix[self.path[0]][self.path[1] - 1].type == 'wall' and cell_size * self.path[1] - 10 >= self.x and \
+                    direction[0] == -1:
+                return False
+            if nodes_matrix[self.path[0]][self.path[1] + 1].type == 'wall' and cell_size * self.path[1] - 10 <= self.x and \
+                    direction[0] == 1:
+                return False
+            if nodes_matrix[self.path[0] - 1][self.path[1]].type == 'wall' and cell_size * (self.path[0] + 3) - 10 >= self.y and \
+                    direction[1] == -1:
+                return False
+            if nodes_matrix[self.path[0] + 1][self.path[1]].type == 'wall' and cell_size * (self.path[0] + 3) - 10 <= self.y and \
+                    direction[1] == 1:
+                return False
+        except IndexError:
+            return True
         return True
+
+    def frames(self):
+        if self.wall_check(self.direction):
+            if global_frame % 4 == 0:
+                self.frame += 1
 
 
 class Object(pygame.sprite.Sprite):
@@ -998,7 +1011,7 @@ if __name__ == '__main__':
             elif cell.has_energy:
                 food.append(Energizer(cell.x * cell_size, cell.y * cell_size + 3 * cell_size))
 
-    pacman = Pac_man(cell_size * 14 - 11, cell_size * 23 - 11, (0, 0))
+    pacman = Pac_man(cell_size * 14 - 11, cell_size * 26 - 11, (0, 0))
     blinky = Blinky(cell_size * 1 - 11, cell_size * 1 - 11 + 3 * cell_size)
     points_sprite.draw(screen)
 
@@ -1027,18 +1040,21 @@ if __name__ == '__main__':
         if global_frame % 4 == 0:
             frame += 1
         points_sprite.draw(screen)
-        screen.blit(pacman.animation[pacman.direction][frame % 3], (pacman.x, pacman.y))
+        screen.blit(pacman.animation[pacman.direction][pacman.frame % 3], (pacman.x, pacman.y))
         screen.blit(blinky.animation[frame % 2], (blinky.x, blinky.y))
         global_frame += 1
         seconds = global_frame / fps
 
         pacman.move()
         pacman.move()
-        blinky.move((pacman.x, pacman.y))
+        pacman.move()
+        pacman.frames()
+        print(pacman.x)
+        #  blinky.move((pacman.x, pacman.y))
 
         for f in food:
             f.update()
 
-        clock.tick(fps)
+        clock.tick(60)
         pygame.display.flip()
 pygame.quit()
