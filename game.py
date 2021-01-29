@@ -878,24 +878,40 @@ class Pac_man:
     def __init__(self, x, y, direction):
         self.x, self.y = x, y
 
-        self.animation = [load_image('data/pacman/full.png')] * 3
-        self.rect = self.animation[0].get_rect()
-        self.mask = pygame.mask.from_surface(self.animation[0])
-        self.rect.x = self.x
-        self.rect.y = self.y
+        self.animation = \
+            {
+                (0, 0): [load_image('data/pacman/full.png')] * 3,
+                (-1, 0): [load_image('data/pacman/left1.png', -1),
+                          load_image('data/pacman/left2.png', -1),
+                          load_image('data/pacman/full.png')],
+                (1, 0): [load_image('data/pacman/right1.png', -1),
+                         load_image('data/pacman/right2.png', -1),
+                         load_image('data/pacman/full.png')],
+                (0, -1): [load_image('data/pacman/up1.png', -1),
+                          load_image('data/pacman/up2.png', -1),
+                          load_image('data/pacman/full.png')],
+                (0, 1): [load_image('data/pacman/down1.png', -1),
+                         load_image('data/pacman/down2.png', -1),
+                         load_image('data/pacman/full.png')]
+            }
 
         self.speed = 60
         self.direction = direction  # это то направление в которое двигается pacman в данный момент
         self.player_direction = (0, 0)  # направление, куда хочет двигаться игрок
 
-        self.path = [int((self.y + 11) // cell_size), int((self.x + 11) // cell_size)]
+        self.rect = self.animation[self.direction][0].get_rect()
+        self.mask = pygame.mask.from_surface(self.animation[self.direction][0])
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+        self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11 - 3 * cell_size) // cell_size)]
 
     def move(self):
         if self.wall_check(self.player_direction):
             self.direction = self.player_direction
 
         if self.wall_check(self.direction):
-            self.path = [int((self.y + 11) // cell_size), int((self.x + 11) // cell_size)]
+            self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11 - 3 * cell_size) // cell_size)]
 
             self.x += (self.speed * self.direction[0]) / fps
             self.y += (self.speed * self.direction[1]) / fps
@@ -999,31 +1015,19 @@ if __name__ == '__main__':
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     pacman.player_direction = (-1, 0)
-                    pacman.animation = [load_image('data/pacman/left1.png', -1),
-                                        load_image('data/pacman/left2.png', -1),
-                                        load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_RIGHT:
                     pacman.player_direction = (1, 0)
-                    pacman.animation = [load_image('data/pacman/right1.png', -1),
-                                        load_image('data/pacman/right2.png', -1),
-                                        load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_UP:
                     pacman.player_direction = (0, -1)
-                    pacman.animation = [load_image('data/pacman/up1.png', -1),
-                                        load_image('data/pacman/up2.png', -1),
-                                        load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_DOWN:
                     pacman.player_direction = (0, 1)
-                    pacman.animation = [load_image('data/pacman/down1.png', -1),
-                                        load_image('data/pacman/down2.png', -1),
-                                        load_image('data/pacman/full.png')]
                 elif event.key == pygame.K_SPACE:
                     blinky.angry = not blinky.angry
 
         if global_frame % 4 == 0:
             frame += 1
         points_sprite.draw(screen)
-        screen.blit(pacman.animation[frame % 3], (pacman.x, pacman.y))
+        screen.blit(pacman.animation[pacman.direction][frame % 3], (pacman.x, pacman.y))
         screen.blit(blinky.animation[frame % 2], (blinky.x, blinky.y))
         global_frame += 1
         seconds = global_frame / fps
