@@ -116,7 +116,7 @@ nodes_matrix: List[List[Cell]] = [
      *(Cell(x, 21, 1) for x in r(22, 26)), Cell(26, 21), Cell(27, 21, 1)],
     # -F----F-----F--F-----F----F-
     [Cell(0, 22, 1), Cell(1, 22), *(Cell(x, 22, 1) for x in r(2, 6)), Cell(6, 22), *(Cell(x, 22, 1) for x in r(7, 12)),
-     Cell(12, 22), Cell(13, 22, 0, 0), Cell(14, 22, 0, 0), Cell(15, 22), *(Cell(x, 22, 1) for x in r(16, 21)),
+     Cell(12, 22), Cell(13, 22, 1), Cell(14, 22, 1), Cell(15, 22), *(Cell(x, 22, 1) for x in r(16, 21)),
      Cell(21, 22), *(Cell(x, 22, 1) for x in r(22, 26)), Cell(26, 22), Cell(27, 22, 1)],
     # -EFF--FFFFFFF00FFFFFFF--FFE-
     [Cell(0, 23, 1), Cell(1, 23, 0, 10), Cell(2, 23), Cell(3, 23), Cell(4, 23, 1), Cell(5, 23, 1),
