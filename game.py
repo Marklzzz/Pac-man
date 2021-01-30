@@ -5,7 +5,7 @@ from typing import List, Optional, Set, Tuple
 from maps import nodes_matrix, Cell
 
 
-def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Cell]]:
+def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Tuple[int, int]]]:
     global nodes_matrix
 
     start_node.cost = 0
@@ -801,13 +801,17 @@ class Ghost:
         self.rect.y = self.y
 
         self.counter = 0
-        self.path = iter([])
+        self.path = None
 
         self.last_seconds = 0
 
         self.angry = False  # злой режим для Блинки
         self.dispersion = True  # режим разбегания
         self.in_the_game = False  # призрак в игре/не в игре
+    
+    def update_time(self):
+        global seconds
+        self.last_seconds = seconds
 
     def move(self, end=None):
         global disarming, seconds, level
@@ -815,50 +819,71 @@ class Ghost:
         coord_x = int((self.x + 11) // cell_size)
         try:
             if self.counter == 0:
-                if end:
+                if not self.dispersion and (not self.path or (coord_x, coord_y) in [
+                    (6, 1), (21, 1), (1, 5), (6, 5), (9, 5), (12, 5), (15, 5), (18, 5), (21, 5), (26, 5), 
+                    (6, 8), (21, 8), (12, 11), (15, 11), (6, 14), (9, 14), (18, 14), (21, 14), (9, 17), 
+                    (18, 17), (6, 20), (9, 20), (18, 20), (21, 20), (6, 23), (9, 23), (12, 23), (15, 23), 
+                    (18, 23), (21, 23), (3, 26), (24, 26), (12, 26), (15, 26), (26, 1)
+                ]):
                     pre_path = find_path(
                         nodes_matrix[coord_y][coord_x],
-                        nodes_matrix[int((end[1] + 11) // cell_size)]
+                        nodes_matrix[int((end[1] + 11 - 3 * cell_size) // cell_size)]
                         [int((end[0] + 11) // cell_size)])
                     if pre_path:
                         self.path = iter(pre_path)
                 self.direction = next(self.path)
-                self.counter = (12 if self.angry else 16) if not disarming else 24
-                self.speed = (2 if self.angry else 1.5) if not disarming else 1
-            self.x += self.direction[0] * self.speed
-            self.y += self.direction[1] * self.speed
+                self.counter = (8 if self.angry else 12) if not disarming else 16
+                self.speed = (3 if self.angry else 2) if not disarming else 1.5
+            self.x = round(self.x + self.direction[0] * self.speed, 1)
+            self.y = round(self.y + self.direction[1] * self.speed, 1)
             self.rect.x = self.x
             self.rect.y = self.y
             self.counter -= 1
         except StopIteration:
-            pass
+            self.path = None
+        except TypeError:
+            self.path = None
 
         if disarming:
             if self.last_seconds == 0:
-                self.last_seconds = seconds
+                self.update_time()
 
             time_shift = round(10 - level // 2 - (seconds - self.last_seconds), 2)
-
-            if time_shift in [10, 2.97, 2.32, 1.65, 0.98, 0.33]:
-                self.animation = [load_image('data/ghosts/killing/disarmed1.png'),
-                                  load_image('data/ghosts/killing/disarmed2.png')]
+            if time_shift == 0:
+                disarming = False
+                self.last_seconds = 0
             elif time_shift in [3.3, 2.65, 1.98, 1.32, 0.65]:
                 self.animation = [load_image('data/ghosts/killing/end-disarmed1.png'),
                                   load_image('data/ghosts/killing/end-disarmed2.png')]
-            elif time_shift == 0:
-                disarming = False
-                self.last_seconds = 0
+            elif time_shift in [2.97, 2.32, 1.65, 0.98, 0.33] or 9.95 <= time_shift <= 10:
+                self.animation = [load_image('data/ghosts/killing/disarmed1.png'),
+                                  load_image('data/ghosts/killing/disarmed2.png')]
 
 
 class Blinky(Ghost):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.animation = [load_image('data/ghosts/blinky/right1.png'), load_image('data/ghosts/blinky/right2.png')]
+        self.path = iter(find_path(nodes_matrix[11][14], nodes_matrix[1][25]) + [(1, 0)])
 
-    def move(self, end=None):
-        global disarming
-
-        super().move(end)
+    def move(self, type_of_move = 'normal'):
+        global disarming, pacman
+        if self.dispersion:
+            coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
+            coord_x = int((self.x + 11) // cell_size)
+            if (coord_x, coord_y) == (22, 5):
+                self.path = iter(find_path(nodes_matrix[5][22], nodes_matrix[1][24]) + [(1, 0)] * 2)
+            elif (coord_x, coord_y) == (26, 1):
+                self.path = iter(find_path(nodes_matrix[1][26], nodes_matrix[5][23])[1:] + [(-1, 0)])
+            super().move()
+        elif disarming:
+            super().move((pacman.x, pacman.y))  # ЗАМЕНИТЬ НА КООРДИНАТУ ОТ ПАКМАНА
+        else:
+            if type_of_move == 'agressive':
+                self.angry = True
+            elif type_of_move == 'normal':
+                self.angry = False
+            super().move((pacman.x, pacman.y))
         if self.direction == (1, 0):
             side = 'right'
         elif self.direction == (-1, 0):
@@ -956,7 +981,7 @@ class Object(pygame.sprite.Sprite):
         self.x, self.y = x, y
         self.eaten = False
 
-    def update(self):
+    def update(self, *args):
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
             self.eaten = True
             points_sprite.remove(self)
@@ -987,9 +1012,11 @@ class Energizer(Object, pygame.sprite.Sprite):
         self.rect.y = y
         points_sprite.add(self)
 
-    def update(self):
+    def update(self, ghosts):
         global disarming
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
+            for g in ghosts:
+                g.update_time()
             disarming = True
             super().update()
 
@@ -1015,7 +1042,7 @@ if __name__ == '__main__':
                 food.append(Energizer(cell.x * cell_size, cell.y * cell_size + 3 * cell_size))
 
     pacman = Pac_man(cell_size * 14 - 11, cell_size * 26 - 11, (0, 0))
-    blinky = Blinky(cell_size * 1 - 11, cell_size * 1 - 11 + 3 * cell_size)
+    blinky = Blinky(cell_size * 14 - 11, cell_size * 11 - 11 + 3 * cell_size)
     points_sprite.draw(screen)
 
     clock = pygame.time.Clock()
@@ -1037,8 +1064,6 @@ if __name__ == '__main__':
                     pacman.player_direction = (0, -1)
                 elif event.key == pygame.K_DOWN:
                     pacman.player_direction = (0, 1)
-                elif event.key == pygame.K_SPACE:
-                    blinky.angry = not blinky.angry
 
         if global_frame % 4 == 0:
             frame += 1
@@ -1048,14 +1073,16 @@ if __name__ == '__main__':
         global_frame += 1
         seconds = global_frame / fps
 
-        pacman.move()
-        pacman.move()
-        pacman.move()
+        for _ in range(3):
+            pacman.move()
         pacman.frames()
-        #  blinky.move((pacman.x, pacman.y))
+        blinky.move()
 
         for f in food:
-            f.update()
+            f.update([blinky])
+            
+        if seconds == 7:
+            blinky.dispersion = False
 
         clock.tick(60)
         pygame.display.flip()
