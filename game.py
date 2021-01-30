@@ -864,13 +864,19 @@ class Blinky(Ghost):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.animation = [load_image('data/ghosts/blinky/right1.png'), load_image('data/ghosts/blinky/right2.png')]
-        self.path = iter(find_path(nodes_matrix[11][14], nodes_matrix[1][25]) + [(1, 0)])
+        self.start_dispersion((14, 11))
+        self.in_the_game = True
+    
+    def start_dispersion(self, end):
+        self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[1][25]) + [(1, 0)])
 
     def move(self, type_of_move = 'normal'):
         global disarming, pacman
         if self.dispersion:
             coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
             coord_x = int((self.x + 11) // cell_size)
+            if (coord_x, coord_y) != (14, 11) and not self.path:
+                self.start_dispersion((coord_x, coord_y))
             if (coord_x, coord_y) == (22, 5):
                 self.path = iter(find_path(nodes_matrix[5][22], nodes_matrix[1][24]) + [(1, 0)] * 2)
             elif (coord_x, coord_y) == (26, 1):
@@ -897,6 +903,42 @@ class Blinky(Ghost):
             angry = 'angry_' if self.angry else ''
             self.animation = [load_image('data/ghosts/blinky/{}{}1.png'.format(angry, side)),
                               load_image('data/ghosts/blinky/{}{}2.png'.format(angry, side))]
+
+
+class Pinky(Ghost):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.animation = [load_image('data/ghosts/pinky/right1.png'), load_image('data/ghosts/pinky/right2.png')]
+        self.path = iter([(0, 1), (0, 1), (0, -1), (0, -1)] * 20)
+
+    def move(self):
+        global disarming, pacman
+        if not self.in_the_game:
+            super().move()
+        elif self.dispersion:
+            coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
+            coord_x = int((self.x + 11) // cell_size)
+            if (coord_x, coord_y) == (22, 5):
+                self.path = iter(find_path(nodes_matrix[5][22], nodes_matrix[1][24]) + [(1, 0)] * 2)
+            elif (coord_x, coord_y) == (26, 1):
+                self.path = iter(find_path(nodes_matrix[1][26], nodes_matrix[5][23])[1:] + [(-1, 0)])
+            super().move()
+        elif disarming:
+            super().move((pacman.x, pacman.y))  # ЗАМЕНИТЬ НА КООРДИНАТУ ОТ ПАКМАНА
+        else:
+            super().move((pacman.x + pacman.direction[0] * cell_size * 4, pacman.y + pacman.direction[1] * cell_size * 4))
+        if self.direction == (1, 0):
+            side = 'right'
+        elif self.direction == (-1, 0):
+            side = 'left'
+        elif self.direction == (0, 1):
+            side = 'down'
+        elif self.direction == (0, -1):
+            side = 'up'
+
+        if not disarming:
+            self.animation = [load_image('data/ghosts/pinky/{}1.png'.format(side)),
+                              load_image('data/ghosts/pinky/{}2.png'.format(side))]
 
 
 class Pac_man:
@@ -1043,6 +1085,7 @@ if __name__ == '__main__':
 
     pacman = Pac_man(cell_size * 14 - 11, cell_size * 26 - 11, (0, 0))
     blinky = Blinky(cell_size * 14 - 11, cell_size * 11 - 11 + 3 * cell_size)
+    pinky = Pinky(cell_size * 13 - 11, cell_size * 13 - 11 + 3 * cell_size)
     points_sprite.draw(screen)
 
     clock = pygame.time.Clock()
@@ -1070,18 +1113,26 @@ if __name__ == '__main__':
         points_sprite.draw(screen)
         screen.blit(pacman.animation[pacman.direction][pacman.frame % 3], (pacman.x, pacman.y))
         screen.blit(blinky.animation[frame % 2], (blinky.x, blinky.y))
+        screen.blit(pinky.animation[frame % 2], (pinky.x, pinky.y))
         global_frame += 1
         seconds = global_frame / fps
 
         for _ in range(3):
             pacman.move()
         pacman.frames()
-        blinky.move()
+        blinky.move('agressive' if len(points_sprite.sprites()) <= 20 + level * 14 else 'normal')
+        pinky.move()
 
         for f in food:
             f.update([blinky])
             
         if seconds == 7:
+            blinky.dispersion = False
+            pinky.in_the_game = True
+        if seconds == 27:
+            blinky.dispersion = True
+            pinky.dispersion = True
+        if seconds == 34:
             blinky.dispersion = False
 
         clock.tick(60)
