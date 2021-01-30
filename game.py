@@ -912,7 +912,10 @@ class Pac_man:
             self.direction = self.player_direction
 
         if self.wall_check(self.direction):
-            self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11) // cell_size)]
+            if self.direction == (-1, 0) or self.direction == (0, -1):
+                self.path = [int((self.y + 32 - 3 * cell_size) // cell_size), int((self.x + 32) // cell_size)]
+            else:
+                self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11) // cell_size)]
 
             self.x += (self.speed * self.direction[0])
             self.y += (self.speed * self.direction[1])
@@ -1049,7 +1052,6 @@ if __name__ == '__main__':
         pacman.move()
         pacman.move()
         pacman.frames()
-        print(pacman.x)
         #  blinky.move((pacman.x, pacman.y))
 
         for f in food:
