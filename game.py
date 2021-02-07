@@ -1,6 +1,7 @@
 import os
 import pygame, pygame.display, pygame.sprite
 from typing import List, Optional, Set, Tuple
+from time import sleep
 
 from maps import nodes_matrix, Cell
 
@@ -1096,8 +1097,46 @@ if __name__ == '__main__':
 
     clock = pygame.time.Clock()
     global_frame, frame = 0, 0
+
+
     screen.fill((0, 0, 0))
     ex = Field()
+    ex.update()
+    font = pygame.font.Font(None, 50)
+    text = font.render("Time!", True, (100, 255, 100))
+    text_x = size[1] // 2 - text.get_width() // 2 - 100
+    text_y = size[0] // 2 - text.get_height() // 2  + 85
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
+                                           text_w + 20, text_h + 20), 1)
+    pygame.display.flip()
+    sleep(3)
+    ex.update()
+    text = font.render("Set!", True, (100, 255, 100))
+    text_x = size[1] // 2 - text.get_width() // 2  - 100
+    text_y = size[0] // 2 - text.get_height() // 2 + 85
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
+                                           text_w + 20, text_h + 20), 1)
+    pygame.display.flip()
+    sleep(3)
+    ex.update()
+    text = font.render("Play!", True, (100, 255, 100))
+    text_x = size[1] // 2 - text.get_width() // 2 - 100
+    text_y = size[0] // 2 - text.get_height() // 2 + 85
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
+                                           text_w + 20, text_h + 20), 1)
+    pygame.display.flip()
+    sleep(3)
+
+
     while running:
         ex.update()
         for event in pygame.event.get():
