@@ -1,5 +1,5 @@
 import os
-import pygame, pygame.display, pygame.sprite
+import pygame, pygame.display, pygame.sprite, pygame.font
 from typing import List, Optional, Set, Tuple
 from time import sleep
 
@@ -804,7 +804,6 @@ class Ghost:
 
         self.angry = False  # злой режим для Блинки
         self.scatter = False  # режим разбегания
-        self.in_the_game = False  # призрак в игре/не в игре
     
     def update_time(self):
         self.last_seconds = seconds
@@ -821,6 +820,9 @@ class Ghost:
                     (18, 17), (6, 20), (9, 20), (18, 20), (21, 20), (6, 23), (9, 23), (12, 23), (15, 23), 
                     (18, 23), (21, 23), (3, 26), (24, 26), (12, 26), (15, 26), (26, 1)
                 ]):
+                    if (int((end[1] + 11 - 3 * cell_size) // cell_size) < 0 or
+                        int((end[0] + 11) // cell_size) < 0):
+                        raise IndexError
                     pre_path = find_path(
                         nodes_matrix[coord_y][coord_x],
                         nodes_matrix[int((end[1] + 11 - 3 * cell_size) // cell_size)]
@@ -841,7 +843,13 @@ class Ghost:
             self.path = None
         except IndexError:
             if isinstance(self, Pinky):
-                self.pave((pacman.x, pacman.y))
+                path_x, path_y = pacman.x - 4 * cell_size, pacman.y - 4 * cell_size
+                if int((path_x + 11) // cell_size) > 0 and int((path_y + 11 - 3 * cell_size) // cell_size) > 0:
+                    self.pave((path_x, path_y))
+            elif isinstance(self, Inky):
+                path_x, path_y = pacman.x - 2 * cell_size, pacman.y - 2 * cell_size
+                if int((path_x + 11) // cell_size) > 0 and int((path_y + 11 - 3 * cell_size) // cell_size) > 0:
+                    self.pave((path_x, path_y))
 
         if disarming:
             if self.last_seconds == 0:
@@ -909,7 +917,7 @@ class Pinky(Ghost):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.animation = [load_image('data/ghosts/pinky/right1.png'), load_image('data/ghosts/pinky/right2.png')]
-        self.path = iter([(0, 1), (0, 1), (0, -1), (0, -1)] * 10)
+        self.path = iter([(0, 1), (0, 1), (0, -1), (0, -1)] * 10 + [(0, -1)] * 2 + [(0.5, 0)])
         self.angry = True if level == 16 else False
     
     def start_dispersion(self, end):
@@ -935,17 +943,118 @@ class Pinky(Ghost):
             super().pave()
             
         if self.direction == (1, 0):
-            side = 'right'
+            self.side = 'right'
         elif self.direction == (-1, 0):
-            side = 'left'
+            self.side = 'left'
         elif self.direction == (0, 1):
-            side = 'down'
+            self.side = 'down'
         elif self.direction == (0, -1):
-            side = 'up'
+            self.side = 'up'
 
         if not disarming:
-            self.animation = [load_image('data/ghosts/pinky/{}1.png'.format(side)),
-                              load_image('data/ghosts/pinky/{}2.png'.format(side))]
+            self.animation = [load_image('data/ghosts/pinky/{}1.png'.format(self.side)),
+                              load_image('data/ghosts/pinky/{}2.png'.format(self.side))]
+
+
+class Inky(Ghost):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.animation = [load_image('data/ghosts/inky/right1.png'), load_image('data/ghosts/inky/right2.png')]
+        self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)] * 10 + [(1, 0)] * 2 + [(0, -1)] * 4  + [(0.5, 0)])
+        self.angry = True if level == 14 else False
+
+    def start_dispersion(self, end):
+        self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[23][7]))
+
+    def move(self):
+        coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
+        coord_x = int((self.x + 11) // cell_size)
+        if disarming:
+            diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
+            super().pave((self.x - diff_x, self.y - diff_y))
+        elif self.scatter:
+            if (coord_x, coord_y) == (7, 23):
+                self.path = iter(find_path(nodes_matrix[23][7], nodes_matrix[29][5]) + [(1, 0)] * 2)
+            elif (coord_x, coord_y) == (7, 29):
+                self.path = iter(find_path(nodes_matrix[29][7], nodes_matrix[23][7])[1:])
+            elif not self.path:
+                self.start_dispersion((coord_x, coord_y))
+            super().pave()
+        elif not self.path:
+            pacman_x = pacman.x + pacman.direction[0] * cell_size * 2
+            pacman_y = pacman.y + pacman.direction[1] * cell_size * 2
+            super().pave((blinky.x + (pacman_x - blinky.x) * 2, blinky.y + (pacman_y - blinky.y) * 2))
+        else:
+            super().pave()
+
+        if self.direction == (1, 0):
+            self.side = 'right'
+        elif self.direction == (-1, 0):
+            self.side = 'left'
+        elif self.direction == (0, 1):
+            self.side = 'down'
+        elif self.direction == (0, -1):
+            self.side = 'up'
+
+        if not disarming:
+            self.animation = [load_image('data/ghosts/inky/{}1.png'.format(self.side)),
+                              load_image('data/ghosts/inky/{}2.png'.format(self.side))]
+
+
+class Clyde(Ghost):
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        self.animation = [load_image('data/ghosts/clyde/right1.png'), load_image('data/ghosts/clyde/right2.png')]
+        self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)] * 11 + [(-1, 0)] * 2 + [(0, -1)] * 4 + [(0.5, 0)])
+        self.angry = True if level == 12 else False
+        self.false_scatter = False
+
+    def start_dispersion(self, end):
+        self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[23][21]))
+
+    def move(self):
+        coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
+        coord_x = int((self.x + 11) // cell_size)
+        pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
+        pacman_x = int((pacman.x + 11) // cell_size)
+        length_to_pacman = len(find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x]))
+        if disarming:
+            diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
+            super().pave((self.x - diff_x, self.y - diff_y))
+        elif self.scatter or self.false_scatter:
+            if self.false_scatter and length_to_pacman > 8:
+                self.false_scatter = False
+                self.scatter = False
+                
+            if (coord_x, coord_y) == (21, 23):
+                self.path = iter(find_path(nodes_matrix[23][21], nodes_matrix[29][22])[1:] + [(-1, 0)] * 3)
+            elif (coord_x, coord_y) == (19, 29):
+                self.path = iter(find_path(nodes_matrix[29][19], nodes_matrix[23][21]))
+            elif not self.path:
+                self.start_dispersion((coord_x, coord_y))
+            
+            super().pave()
+        elif not self.path:
+            if length_to_pacman <= 8:
+                self.false_scatter = True
+                self.scatter = True
+            else:
+                super().pave((pacman.x, pacman.y))
+        else:
+            super().pave()
+
+        if self.direction == (1, 0):
+            self.side = 'right'
+        elif self.direction == (-1, 0):
+            self.side = 'left'
+        elif self.direction == (0, 1):
+            self.side = 'down'
+        elif self.direction == (0, -1):
+            self.side = 'up'
+
+        if not disarming:
+            self.animation = [load_image('data/ghosts/clyde/{}1.png'.format(self.side)),
+                              load_image('data/ghosts/clyde/{}2.png'.format(self.side))]
 
 
 class Pac_man:
@@ -1092,7 +1201,9 @@ if __name__ == '__main__':
 
     pacman = Pac_man(cell_size * 14 - 11, cell_size * 26 - 11, (0, 0))
     blinky = Blinky(cell_size * 14 - 11, cell_size * 11 - 11 + 3 * cell_size)
-    pinky = Pinky(cell_size * 13 - 11, cell_size * 13 - 11 + 3 * cell_size)
+    pinky = Pinky(cell_size * 13.5 - 11, cell_size * 13 - 11 + 3 * cell_size)
+    inky = Inky(cell_size * 11.5 - 11, cell_size * 15 - 11 + 3 * cell_size)
+    clyde = Clyde(cell_size * 15.5 - 11, cell_size * 15 - 11 + 3 * cell_size)
     points_sprite.draw(screen)
 
     clock = pygame.time.Clock()
@@ -1102,39 +1213,36 @@ if __name__ == '__main__':
     screen.fill((0, 0, 0))
     ex = Field()
     ex.update()
-    font = pygame.font.Font(None, 50)
-    text = font.render("Time!", True, (100, 255, 100))
+    font = pygame.font.Font('data/PacMan Font.ttf', 25)
+    
+    text = font.render("TIME!", True, '#ffcc00')
     text_x = size[1] // 2 - text.get_width() // 2 - 100
     text_y = size[0] // 2 - text.get_height() // 2  + 85
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
-    pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
-                                           text_w + 20, text_h + 20), 1)
     pygame.display.flip()
-    sleep(3)
+    sleep(1.5)
     ex.update()
-    text = font.render("Set!", True, (100, 255, 100))
+    
+    text = font.render("SET!", True, '#ffcc00')
     text_x = size[1] // 2 - text.get_width() // 2  - 100
     text_y = size[0] // 2 - text.get_height() // 2 + 85
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
-    pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
-                                           text_w + 20, text_h + 20), 1)
     pygame.display.flip()
-    sleep(3)
+    sleep(1.5)
     ex.update()
-    text = font.render("Play!", True, (100, 255, 100))
+    
+    text = font.render("PLAY!", True, '#ffcc00')
     text_x = size[1] // 2 - text.get_width() // 2 - 100
     text_y = size[0] // 2 - text.get_height() // 2 + 85
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
-    pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
-                                           text_w + 20, text_h + 20), 1)
     pygame.display.flip()
-    sleep(3)
+    sleep(1.5)
 
 
     while running:
@@ -1159,6 +1267,8 @@ if __name__ == '__main__':
         screen.blit(pacman.animation[pacman.direction][pacman.frame % 3], (pacman.x, pacman.y))
         screen.blit(blinky.animation[frame % 2], (blinky.x, blinky.y))
         screen.blit(pinky.animation[frame % 2], (pinky.x, pinky.y))
+        screen.blit(inky.animation[frame % 2], (inky.x, inky.y))
+        screen.blit(clyde.animation[frame % 2], (clyde.x, clyde.y))
         global_frame += 1
         seconds = global_frame / fps
 
@@ -1167,17 +1277,31 @@ if __name__ == '__main__':
         pacman.frames()
         blinky.move('agressive' if len(points_sprite.sprites()) <= 20 + level * 14 else 'normal')
         pinky.move()
+        inky.move()
+        clyde.move()
 
         for f in food:
-            f.update([blinky, pinky])
+            f.update([blinky, pinky, inky, clyde])
         if seconds == 7:
             blinky.scatter = False
         if seconds == 27:
-            blinky.scatter = True
-            pinky.scatter = True
+            for ghost in (blinky, pinky, inky, clyde):
+                ghost.scatter = True
         if seconds == 34:
-            blinky.scatter = False
-            pinky.scatter = False
+            for ghost in (blinky, pinky, inky, clyde):
+                ghost.scatter = False
+        if seconds == 54:
+            for ghost in (blinky, pinky, inky, clyde):
+                ghost.scatter = True
+        if seconds == 59:
+            for ghost in (blinky, pinky, inky, clyde):
+                ghost.scatter = False
+        if seconds == 79:
+            for ghost in (blinky, pinky, inky, clyde):
+                ghost.scatter = True
+        if seconds == 84:
+            for ghost in (blinky, pinky, inky, clyde):
+                ghost.scatter = False
 
         clock.tick(60)
         pygame.display.flip()
