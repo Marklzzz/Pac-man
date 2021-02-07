@@ -7,7 +7,6 @@ from maps import nodes_matrix, Cell
 
 
 def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Tuple[int, int]]]:
-
     start_node.cost = 0
 
     reachable = [start_node]
@@ -804,7 +803,7 @@ class Ghost:
 
         self.angry = False  # злой режим для Блинки
         self.scatter = False  # режим разбегания
-    
+
     def update_time(self):
         self.last_seconds = seconds
 
@@ -815,13 +814,13 @@ class Ghost:
         try:
             if self.counter == 0:
                 if not self.scatter and (not self.path or (coord_x, coord_y) in [
-                    (6, 1), (21, 1), (1, 5), (6, 5), (9, 5), (12, 5), (15, 5), (18, 5), (21, 5), (26, 5), 
-                    (6, 8), (21, 8), (12, 11), (15, 11), (6, 14), (9, 14), (18, 14), (21, 14), (9, 17), 
-                    (18, 17), (6, 20), (9, 20), (18, 20), (21, 20), (6, 23), (9, 23), (12, 23), (15, 23), 
+                    (6, 1), (21, 1), (1, 5), (6, 5), (9, 5), (12, 5), (15, 5), (18, 5), (21, 5), (26, 5),
+                    (6, 8), (21, 8), (12, 11), (15, 11), (6, 14), (9, 14), (18, 14), (21, 14), (9, 17),
+                    (18, 17), (6, 20), (9, 20), (18, 20), (21, 20), (6, 23), (9, 23), (12, 23), (15, 23),
                     (18, 23), (21, 23), (3, 26), (24, 26), (12, 26), (15, 26), (26, 1)
                 ]):
                     if (int((end[1] + 11 - 3 * cell_size) // cell_size) < 0 or
-                        int((end[0] + 11) // cell_size) < 0):
+                            int((end[0] + 11) // cell_size) < 0):
                         raise IndexError
                     pre_path = find_path(
                         nodes_matrix[coord_y][coord_x],
@@ -873,16 +872,16 @@ class Blinky(Ghost):
         self.animation = [load_image('data/ghosts/blinky/right1.png'), load_image('data/ghosts/blinky/right2.png')]
         self.start_dispersion((14, 11))
         self.scatter = True
-    
+
     def start_dispersion(self, end):
         self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[1][25]) + [(1, 0)])
 
-    def move(self, type_of_move = 'normal'):
+    def move(self, type_of_move='normal'):
         if type_of_move == 'agressive':
             self.angry = True
         elif type_of_move == 'normal':
             self.angry = False
-        
+
         if disarming:
             diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
             super().pave((self.x - diff_x, self.y - diff_y))
@@ -919,7 +918,7 @@ class Pinky(Ghost):
         self.animation = [load_image('data/ghosts/pinky/right1.png'), load_image('data/ghosts/pinky/right2.png')]
         self.path = iter([(0, 1), (0, 1), (0, -1), (0, -1)] * 10 + [(0, -1)] * 2 + [(0.5, 0)])
         self.angry = True if level == 16 else False
-    
+
     def start_dispersion(self, end):
         self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[1][1]))
 
@@ -938,10 +937,11 @@ class Pinky(Ghost):
                 self.start_dispersion((coord_x, coord_y))
             super().pave()
         elif not self.path:
-            super().pave((pacman.x + pacman.direction[0] * cell_size * 4, pacman.y + pacman.direction[1] * cell_size * 4))
+            super().pave(
+                (pacman.x + pacman.direction[0] * cell_size * 4, pacman.y + pacman.direction[1] * cell_size * 4))
         else:
             super().pave()
-            
+
         if self.direction == (1, 0):
             self.side = 'right'
         elif self.direction == (-1, 0):
@@ -960,7 +960,7 @@ class Inky(Ghost):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.animation = [load_image('data/ghosts/inky/right1.png'), load_image('data/ghosts/inky/right2.png')]
-        self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)] * 10 + [(1, 0)] * 2 + [(0, -1)] * 4  + [(0.5, 0)])
+        self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)] * 10 + [(1, 0)] * 2 + [(0, -1)] * 4 + [(0.5, 0)])
         self.angry = True if level == 14 else False
 
     def start_dispersion(self, end):
@@ -1025,14 +1025,14 @@ class Clyde(Ghost):
             if self.false_scatter and length_to_pacman > 8:
                 self.false_scatter = False
                 self.scatter = False
-                
+
             if (coord_x, coord_y) == (21, 23):
                 self.path = iter(find_path(nodes_matrix[23][21], nodes_matrix[29][22])[1:] + [(-1, 0)] * 3)
             elif (coord_x, coord_y) == (19, 29):
                 self.path = iter(find_path(nodes_matrix[29][19], nodes_matrix[23][21]))
             elif not self.path:
                 self.start_dispersion((coord_x, coord_y))
-            
+
             super().pave()
         elif not self.path:
             if length_to_pacman <= 8:
@@ -1111,16 +1111,20 @@ class Pac_man:
 
     def wall_check(self, direction):  # 1. Есть ли стена 2. Можно ли ещё пододвинуться к стенке 3. Направление
         try:
-            if nodes_matrix[self.path[0]][self.path[1] - 1].type == 'wall' and cell_size * self.path[1] - 10 >= self.x and \
+            if nodes_matrix[self.path[0]][self.path[1] - 1].type == 'wall' and cell_size * self.path[
+                1] - 10 >= self.x and \
                     direction[0] == -1:
                 return False
-            if nodes_matrix[self.path[0]][self.path[1] + 1].type == 'wall' and cell_size * self.path[1] - 10 <= self.x and \
+            if nodes_matrix[self.path[0]][self.path[1] + 1].type == 'wall' and cell_size * self.path[
+                1] - 10 <= self.x and \
                     direction[0] == 1:
                 return False
-            if nodes_matrix[self.path[0] - 1][self.path[1]].type == 'wall' and cell_size * (self.path[0] + 3) - 10 >= self.y and \
+            if nodes_matrix[self.path[0] - 1][self.path[1]].type == 'wall' and cell_size * (
+                    self.path[0] + 3) - 10 >= self.y and \
                     direction[1] == -1:
                 return False
-            if nodes_matrix[self.path[0] + 1][self.path[1]].type == 'wall' and cell_size * (self.path[0] + 3) - 10 <= self.y and \
+            if nodes_matrix[self.path[0] + 1][self.path[1]].type == 'wall' and cell_size * (
+                    self.path[0] + 3) - 10 <= self.y and \
                     direction[1] == 1:
                 return False
         except IndexError:
@@ -1184,11 +1188,19 @@ class Fruits(Object):
         super().__init__(x, y)
 
 
-if __name__ == '__main__':
-    fps = 60
+def make_game(lvl, score):
+    pygame.mixer.init()
+    pygame.mixer.music.load('theme.mp3')
+    pygame.mixer.music.play(-1, 0.0)
+    global screen, pacman, points_sprite, global_frame, blinky, level, seconds, disarming
+    fps = 30
     running = True
     disarming = False
-    level, seconds = 1, 0
+
+    # данные на вывод
+    level, seconds = lvl, 0
+    global_score = score
+
     points_sprite = pygame.sprite.Group()
     food = []
 
@@ -1209,24 +1221,13 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     global_frame, frame = 0, 0
 
-
     screen.fill((0, 0, 0))
     ex = Field()
     ex.update()
     font = pygame.font.Font('data/PacMan Font.ttf', 25)
-    
+
     text = font.render("TIME!", True, '#ffcc00')
     text_x = size[1] // 2 - text.get_width() // 2 - 100
-    text_y = size[0] // 2 - text.get_height() // 2  + 85
-    text_w = text.get_width()
-    text_h = text.get_height()
-    screen.blit(text, (text_x, text_y))
-    pygame.display.flip()
-    sleep(1.5)
-    ex.update()
-    
-    text = font.render("SET!", True, '#ffcc00')
-    text_x = size[1] // 2 - text.get_width() // 2  - 100
     text_y = size[0] // 2 - text.get_height() // 2 + 85
     text_w = text.get_width()
     text_h = text.get_height()
@@ -1234,7 +1235,17 @@ if __name__ == '__main__':
     pygame.display.flip()
     sleep(1.5)
     ex.update()
-    
+
+    text = font.render("SET!", True, '#ffcc00')
+    text_x = size[1] // 2 - text.get_width() // 2 - 100
+    text_y = size[0] // 2 - text.get_height() // 2 + 85
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    pygame.display.flip()
+    sleep(1.5)
+    ex.update()
+
     text = font.render("PLAY!", True, '#ffcc00')
     text_x = size[1] // 2 - text.get_width() // 2 - 100
     text_y = size[0] // 2 - text.get_height() // 2 + 85
@@ -1243,7 +1254,6 @@ if __name__ == '__main__':
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
     sleep(1.5)
-
 
     while running:
         ex.update()
@@ -1284,6 +1294,9 @@ if __name__ == '__main__':
             f.update([blinky, pinky, inky, clyde])
         if seconds == 7:
             blinky.scatter = False
+        if seconds == 15:
+            print('игра успешно создана')
+            make_game(level + 1, global_score)
         if seconds == 27:
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = True
@@ -1303,6 +1316,24 @@ if __name__ == '__main__':
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = False
 
-        clock.tick(60)
+        clock.tick(30)
         pygame.display.flip()
+
+    # тут мы вызываем функцию заново - отрисовка нового уровня
+    # при условии, которое должно на это указывать
+    if False:
+        make_game(level + 1, score)
+
+
+if __name__ == '__main__':
+    pacman = 0
+    points_sprite = 0
+    global_frame = 0
+    level = 0
+    blinky = 0
+    seconds = 0
+    disarming = 0
+    make_game(1, 0)
+
+
 pygame.quit()
