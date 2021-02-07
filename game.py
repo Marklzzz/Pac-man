@@ -6,7 +6,6 @@ from maps import nodes_matrix, Cell
 
 
 def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Tuple[int, int]]]:
-    global nodes_matrix
 
     start_node.cost = 0
 
@@ -43,7 +42,6 @@ def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Tuple[int, int]
 def get_adjacent_nodes(node: Cell) -> Set[Cell]:
     x, y = node.x, node.y
     adjacent = set()
-    global nodes_matrix
     for s_x in (-1, 0, 1):
         for s_y in (-1, 0, 1):
             if (
@@ -61,7 +59,6 @@ def get_adjacent_nodes(node: Cell) -> Set[Cell]:
 
 
 def build_path(to_node: Cell) -> List[Tuple[int, int]]:
-    global nodes_matrix
     path = []
     while to_node != None:
         path.append(to_node)
@@ -106,7 +103,6 @@ screen = pygame.display.set_mode(size)
 
 
 class Field:
-    global maze, cell_size, screen
 
     def __init__(self):
         self.wall_1 = pygame.transform.scale(pygame.image.load('data/mazeparts/борт карты ↑.png'),
@@ -806,20 +802,19 @@ class Ghost:
         self.last_seconds = 0
 
         self.angry = False  # злой режим для Блинки
-        self.dispersion = True  # режим разбегания
+        self.scatter = False  # режим разбегания
         self.in_the_game = False  # призрак в игре/не в игре
     
     def update_time(self):
-        global seconds
         self.last_seconds = seconds
 
-    def move(self, end=None):
-        global disarming, seconds, level
+    def pave(self, end=None):
+        global disarming
         coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
         coord_x = int((self.x + 11) // cell_size)
         try:
             if self.counter == 0:
-                if not self.dispersion and (not self.path or (coord_x, coord_y) in [
+                if not self.scatter and (not self.path or (coord_x, coord_y) in [
                     (6, 1), (21, 1), (1, 5), (6, 5), (9, 5), (12, 5), (15, 5), (18, 5), (21, 5), (26, 5), 
                     (6, 8), (21, 8), (12, 11), (15, 11), (6, 14), (9, 14), (18, 14), (21, 14), (9, 17), 
                     (18, 17), (6, 20), (9, 20), (18, 20), (21, 20), (6, 23), (9, 23), (12, 23), (15, 23), 
@@ -843,6 +838,9 @@ class Ghost:
             self.path = None
         except TypeError:
             self.path = None
+        except IndexError:
+            if isinstance(self, Pinky):
+                self.pave((pacman.x, pacman.y))
 
         if disarming:
             if self.last_seconds == 0:
@@ -865,31 +863,32 @@ class Blinky(Ghost):
         super().__init__(x, y)
         self.animation = [load_image('data/ghosts/blinky/right1.png'), load_image('data/ghosts/blinky/right2.png')]
         self.start_dispersion((14, 11))
-        self.in_the_game = True
+        self.scatter = True
     
     def start_dispersion(self, end):
         self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[1][25]) + [(1, 0)])
 
     def move(self, type_of_move = 'normal'):
-        global disarming, pacman
-        if self.dispersion:
+        if type_of_move == 'agressive':
+            self.angry = True
+        elif type_of_move == 'normal':
+            self.angry = False
+        
+        if disarming:
+            diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
+            super().pave((self.x - diff_x, self.y - diff_y))
+        elif self.scatter:
             coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
             coord_x = int((self.x + 11) // cell_size)
             if (coord_x, coord_y) != (14, 11) and not self.path:
                 self.start_dispersion((coord_x, coord_y))
-            if (coord_x, coord_y) == (22, 5):
+            elif (coord_x, coord_y) == (22, 5):
                 self.path = iter(find_path(nodes_matrix[5][22], nodes_matrix[1][24]) + [(1, 0)] * 2)
             elif (coord_x, coord_y) == (26, 1):
                 self.path = iter(find_path(nodes_matrix[1][26], nodes_matrix[5][23])[1:] + [(-1, 0)])
-            super().move()
-        elif disarming:
-            super().move((pacman.x, pacman.y))  # ЗАМЕНИТЬ НА КООРДИНАТУ ОТ ПАКМАНА
+            super().pave()
         else:
-            if type_of_move == 'agressive':
-                self.angry = True
-            elif type_of_move == 'normal':
-                self.angry = False
-            super().move((pacman.x, pacman.y))
+            super().pave((pacman.x, pacman.y))
         if self.direction == (1, 0):
             side = 'right'
         elif self.direction == (-1, 0):
@@ -909,24 +908,31 @@ class Pinky(Ghost):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.animation = [load_image('data/ghosts/pinky/right1.png'), load_image('data/ghosts/pinky/right2.png')]
-        self.path = iter([(0, 1), (0, 1), (0, -1), (0, -1)] * 20)
+        self.path = iter([(0, 1), (0, 1), (0, -1), (0, -1)] * 10)
+        self.angry = True if level == 16 else False
+    
+    def start_dispersion(self, end):
+        self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[1][1]))
 
     def move(self):
-        global disarming, pacman
-        if not self.in_the_game:
-            super().move()
-        elif self.dispersion:
-            coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
-            coord_x = int((self.x + 11) // cell_size)
-            if (coord_x, coord_y) == (22, 5):
-                self.path = iter(find_path(nodes_matrix[5][22], nodes_matrix[1][24]) + [(1, 0)] * 2)
-            elif (coord_x, coord_y) == (26, 1):
-                self.path = iter(find_path(nodes_matrix[1][26], nodes_matrix[5][23])[1:] + [(-1, 0)])
-            super().move()
-        elif disarming:
-            super().move((pacman.x, pacman.y))  # ЗАМЕНИТЬ НА КООРДИНАТУ ОТ ПАКМАНА
+        coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
+        coord_x = int((self.x + 11) // cell_size)
+        if disarming:
+            diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
+            super().pave((self.x - diff_x, self.y - diff_y))
+        elif self.scatter:
+            if (coord_x, coord_y) == (6, 5):
+                self.path = iter(find_path(nodes_matrix[5][6], nodes_matrix[1][2]) + [(-1, 0)])
+            elif (coord_x, coord_y) == (1, 1):
+                self.path = iter(find_path(nodes_matrix[1][1], nodes_matrix[5][6])[1:])
+            elif not self.path:
+                self.start_dispersion((coord_x, coord_y))
+            super().pave()
+        elif not self.path:
+            super().pave((pacman.x + pacman.direction[0] * cell_size * 4, pacman.y + pacman.direction[1] * cell_size * 4))
         else:
-            super().move((pacman.x + pacman.direction[0] * cell_size * 4, pacman.y + pacman.direction[1] * cell_size * 4))
+            super().pave()
+            
         if self.direction == (1, 0):
             side = 'right'
         elif self.direction == (-1, 0):
@@ -1124,16 +1130,15 @@ if __name__ == '__main__':
         pinky.move()
 
         for f in food:
-            f.update([blinky])
-            
+            f.update([blinky, pinky])
         if seconds == 7:
-            blinky.dispersion = False
-            pinky.in_the_game = True
+            blinky.scatter = False
         if seconds == 27:
-            blinky.dispersion = True
-            pinky.dispersion = True
+            blinky.scatter = True
+            pinky.scatter = True
         if seconds == 34:
-            blinky.dispersion = False
+            blinky.scatter = False
+            pinky.scatter = False
 
         clock.tick(60)
         pygame.display.flip()
