@@ -1004,7 +1004,7 @@ class Inky(Ghost):
         self.angry = True if level >= 14 else False
 
     def start_dispersion(self, end):
-        self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[23][7]))
+        self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[23][21]))
 
     def move(self):
         coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
@@ -1032,10 +1032,10 @@ class Inky(Ghost):
                 self.path = iter([random.choice(free_directions) if free_directions else direct])
                 super().pave()
         elif self.scatter:
-            if (coord_x, coord_y) == (7, 23):
-                self.path = iter(find_path(nodes_matrix[23][7], nodes_matrix[29][5]) + [(1, 0)] * 2)
-            elif (coord_x, coord_y) == (7, 29):
-                self.path = iter(find_path(nodes_matrix[29][7], nodes_matrix[23][7])[1:])
+            if (coord_x, coord_y) == (21, 23):
+                self.path = iter(find_path(nodes_matrix[23][21], nodes_matrix[29][22])[1:] + [(-1, 0)] * 3)
+            elif (coord_x, coord_y) == (19, 29):
+                self.path = iter(find_path(nodes_matrix[29][19], nodes_matrix[23][21]))
             elif not self.path:
                 self.start_dispersion((coord_x, coord_y))
             super().pave()
@@ -1068,14 +1068,15 @@ class Clyde(Ghost):
         self.false_scatter = False
 
     def start_dispersion(self, end):
-        self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[23][21]))
+        self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[23][7]))
 
     def move(self):
         coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
         coord_x = int((self.x + 11) // cell_size)
         pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
         pacman_x = int((pacman.x + 11) // cell_size)
-        length_to_pacman = len(find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x]))
+        path_to_pacman = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])
+        length_to_pacman = len(path_to_pacman) if path_to_pacman else 1
         
         if not self.in_the_game and not self.path:
             self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)])
@@ -1101,10 +1102,10 @@ class Clyde(Ghost):
                 self.false_scatter = False
                 self.scatter = False
 
-            if (coord_x, coord_y) == (21, 23):
-                self.path = iter(find_path(nodes_matrix[23][21], nodes_matrix[29][22])[1:] + [(-1, 0)] * 3)
-            elif (coord_x, coord_y) == (19, 29):
-                self.path = iter(find_path(nodes_matrix[29][19], nodes_matrix[23][21]))
+            if (coord_x, coord_y) == (7, 23):
+                self.path = iter(find_path(nodes_matrix[23][7], nodes_matrix[29][5]) + [(1, 0)] * 2)
+            elif (coord_x, coord_y) == (7, 29):
+                self.path = iter(find_path(nodes_matrix[29][7], nodes_matrix[23][7])[1:])
             elif not self.path:
                 self.start_dispersion((coord_x, coord_y))
 
