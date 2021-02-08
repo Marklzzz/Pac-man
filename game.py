@@ -1,5 +1,6 @@
 import os
-import pygame, pygame.display, pygame.sprite, pygame.font
+import random
+import pygame, pygame.display, pygame.sprite, pygame.font, pygame.mixer
 from typing import List, Optional, Set, Tuple
 from time import sleep
 
@@ -101,6 +102,10 @@ size = 28 * cell_size, 36 * cell_size
 maze = pygame.Surface(size)
 screen = pygame.display.set_mode(size)
 
+important_points = ((6, 1), (21, 1), (1, 5), (6, 5), (9, 5), (12, 5), (15, 5), (18, 5), (21, 5), (26, 5),
+                    (6, 8), (21, 8), (12, 11), (15, 11), (6, 14), (9, 14), (18, 14), (21, 14), (9, 17),
+                    (18, 17), (6, 20), (9, 20), (18, 20), (21, 20), (6, 23), (9, 23), (12, 23), (15, 23),
+                    (18, 23), (21, 23), (3, 26), (24, 26), (12, 26), (15, 26), (26, 1))
 
 class Field:
 
@@ -803,6 +808,7 @@ class Ghost:
 
         self.angry = False  # злой режим для Блинки
         self.scatter = False  # режим разбегания
+        self.in_the_game = False
 
     def update_time(self):
         self.last_seconds = seconds
@@ -813,12 +819,9 @@ class Ghost:
         coord_x = int((self.x + 11) // cell_size)
         try:
             if self.counter == 0:
-                if not self.scatter and (not self.path or (coord_x, coord_y) in [
-                    (6, 1), (21, 1), (1, 5), (6, 5), (9, 5), (12, 5), (15, 5), (18, 5), (21, 5), (26, 5),
-                    (6, 8), (21, 8), (12, 11), (15, 11), (6, 14), (9, 14), (18, 14), (21, 14), (9, 17),
-                    (18, 17), (6, 20), (9, 20), (18, 20), (21, 20), (6, 23), (9, 23), (12, 23), (15, 23),
-                    (18, 23), (21, 23), (3, 26), (24, 26), (12, 26), (15, 26), (26, 1)
-                ]):
+                if not self.scatter and (
+                    not self.path or ((coord_x, coord_y) in important_points and not disarming)
+                ):
                     if (int((end[1] + 11 - 3 * cell_size) // cell_size) < 0 or
                             int((end[0] + 11) // cell_size) < 0):
                         raise IndexError
@@ -842,26 +845,27 @@ class Ghost:
             self.path = None
         except IndexError:
             if isinstance(self, Pinky):
-                path_x, path_y = pacman.x - 4 * cell_size, pacman.y - 4 * cell_size
-                if int((path_x + 11) // cell_size) > 0 and int((path_y + 11 - 3 * cell_size) // cell_size) > 0:
-                    self.pave((path_x, path_y))
+                self.pave((pacman.x, pacman.y))
             elif isinstance(self, Inky):
                 path_x, path_y = pacman.x - 2 * cell_size, pacman.y - 2 * cell_size
                 if int((path_x + 11) // cell_size) > 0 and int((path_y + 11 - 3 * cell_size) // cell_size) > 0:
                     self.pave((path_x, path_y))
+                else:
+                    self.pave((pacman.x, pacman.y))
 
         if disarming:
             if self.last_seconds == 0:
                 self.update_time()
 
-            time_shift = round(10 - level // 2 - (seconds - self.last_seconds), 2)
+            up_time = 10 - level // 2
+            time_shift = round(up_time - (seconds - self.last_seconds), 2)
             if time_shift == 0:
                 disarming = False
                 self.last_seconds = 0
             elif time_shift in [3.3, 2.65, 1.98, 1.32, 0.65]:
                 self.animation = [load_image('data/ghosts/killing/end-disarmed1.png'),
                                   load_image('data/ghosts/killing/end-disarmed2.png')]
-            elif time_shift in [2.97, 2.32, 1.65, 0.98, 0.33] or 9.95 <= time_shift <= 10:
+            elif time_shift in [2.97, 2.32, 1.65, 0.98, 0.33] or up_time - 0.05 <= time_shift <= up_time:
                 self.animation = [load_image('data/ghosts/killing/disarmed1.png'),
                                   load_image('data/ghosts/killing/disarmed2.png')]
 
@@ -882,12 +886,24 @@ class Blinky(Ghost):
         elif type_of_move == 'normal':
             self.angry = False
 
-        if disarming:
+        coord_x = int((self.x + 11) // cell_size)
+        coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
+        
+        if disarming and not self.path:
             diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
-            super().pave((self.x - diff_x, self.y - diff_y))
+            if 1 <= diff_x <= 48 and 1 <= diff_y <= 48:
+                super().pave((self.x - diff_x, self.y - diff_y))
+            else:
+                pacman_x = int((pacman.x + 11) // cell_size)
+                pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
+                direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                free_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
+                free_directions = list(filter(
+                    lambda x: nodes_matrix[coord_y + x[1]][coord_x + x[0]].type != 'wall', free_directions
+                ))
+                self.path = iter([random.choice(free_directions) if free_directions else direct])
+                super().pave()
         elif self.scatter:
-            coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
-            coord_x = int((self.x + 11) // cell_size)
             if (coord_x, coord_y) != (14, 11) and not self.path:
                 self.start_dispersion((coord_x, coord_y))
             elif (coord_x, coord_y) == (22, 5):
@@ -895,8 +911,11 @@ class Blinky(Ghost):
             elif (coord_x, coord_y) == (26, 1):
                 self.path = iter(find_path(nodes_matrix[1][26], nodes_matrix[5][23])[1:] + [(-1, 0)])
             super().pave()
-        else:
+        elif not self.path:
             super().pave((pacman.x, pacman.y))
+        else:
+            super().pave()
+            
         if self.direction == (1, 0):
             side = 'right'
         elif self.direction == (-1, 0):
@@ -916,7 +935,6 @@ class Pinky(Ghost):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.animation = [load_image('data/ghosts/pinky/right1.png'), load_image('data/ghosts/pinky/right2.png')]
-        self.path = iter([(0, 1), (0, 1), (0, -1), (0, -1)] * 10 + [(0, -1)] * 2 + [(0.5, 0)])
         self.angry = True if level == 16 else False
 
     def start_dispersion(self, end):
@@ -925,9 +943,24 @@ class Pinky(Ghost):
     def move(self):
         coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
         coord_x = int((self.x + 11) // cell_size)
-        if disarming:
+        
+        if not self.in_the_game and not self.path:
+            self.path = iter([(0, 1), (0, 1), (0, -1), (0, -1)])
+            super().pave()
+        elif disarming and not self.path:
             diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
-            super().pave((self.x - diff_x, self.y - diff_y))
+            if 1 <= diff_x <= 48 and 1 <= diff_y <= 48:
+                super().pave((self.x - diff_x, self.y - diff_y))
+            else:
+                pacman_x = int((pacman.x + 11) // cell_size)
+                pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
+                direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                free_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
+                free_directions = list(filter(
+                    lambda x: nodes_matrix[coord_y + x[1]][coord_x + x[0]].type != 'wall', free_directions
+                ))
+                self.path = iter([random.choice(free_directions) if free_directions else direct])
+                super().pave()
         elif self.scatter:
             if (coord_x, coord_y) == (6, 5):
                 self.path = iter(find_path(nodes_matrix[5][6], nodes_matrix[1][2]) + [(-1, 0)])
@@ -960,8 +993,7 @@ class Inky(Ghost):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.animation = [load_image('data/ghosts/inky/right1.png'), load_image('data/ghosts/inky/right2.png')]
-        self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)] * 10 + [(1, 0)] * 2 + [(0, -1)] * 4 + [(0.5, 0)])
-        self.angry = True if level == 14 else False
+        self.angry = True if level >= 14 else False
 
     def start_dispersion(self, end):
         self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[23][7]))
@@ -969,9 +1001,24 @@ class Inky(Ghost):
     def move(self):
         coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
         coord_x = int((self.x + 11) // cell_size)
-        if disarming:
+        
+        if not self.in_the_game and not self.path:
+            self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)])
+            super().pave()
+        elif disarming and not self.path:
             diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
-            super().pave((self.x - diff_x, self.y - diff_y))
+            if 1 <= diff_x <= 48 and 1 <= diff_y <= 48:
+                super().pave((self.x - diff_x, self.y - diff_y))
+            else:
+                pacman_x = int((pacman.x + 11) // cell_size)
+                pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
+                direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                free_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
+                free_directions = list(filter(
+                    lambda x: nodes_matrix[coord_y + x[1]][coord_x + x[0]].type != 'wall', free_directions
+                ))
+                self.path = iter([random.choice(free_directions) if free_directions else direct])
+                super().pave()
         elif self.scatter:
             if (coord_x, coord_y) == (7, 23):
                 self.path = iter(find_path(nodes_matrix[23][7], nodes_matrix[29][5]) + [(1, 0)] * 2)
@@ -1005,8 +1052,7 @@ class Clyde(Ghost):
     def __init__(self, x, y):
         super().__init__(x, y)
         self.animation = [load_image('data/ghosts/clyde/right1.png'), load_image('data/ghosts/clyde/right2.png')]
-        self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)] * 11 + [(-1, 0)] * 2 + [(0, -1)] * 4 + [(0.5, 0)])
-        self.angry = True if level == 12 else False
+        self.angry = True if level >= 12 else False
         self.false_scatter = False
 
     def start_dispersion(self, end):
@@ -1018,9 +1064,22 @@ class Clyde(Ghost):
         pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
         pacman_x = int((pacman.x + 11) // cell_size)
         length_to_pacman = len(find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x]))
-        if disarming:
+        
+        if not self.in_the_game and not self.path:
+            self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)])
+            super().pave()
+        elif disarming and not self.path:
             diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
-            super().pave((self.x - diff_x, self.y - diff_y))
+            if 1 <= diff_x <= 48 and 1 <= diff_y <= 48:
+                super().pave((self.x - diff_x, self.y - diff_y))
+            else:
+                direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                free_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
+                free_directions = list(filter(
+                    lambda x: nodes_matrix[coord_y + x[1]][coord_x + x[0]].type != 'wall', free_directions
+                ))
+                self.path = iter([random.choice(free_directions) if free_directions else direct])
+                super().pave()
         elif self.scatter or self.false_scatter:
             if self.false_scatter and length_to_pacman > 8:
                 self.false_scatter = False
@@ -1190,12 +1249,12 @@ class Fruits(Object):
 
 def make_game(lvl, score):
     pygame.mixer.init()
-    pygame.mixer.music.load('theme.mp3')
-    pygame.mixer.music.play(-1, 0.0)
+    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/game_start.wav'))
     global screen, pacman, points_sprite, global_frame, blinky, level, seconds, disarming
-    fps = 30
+    fps = 60
     running = True
     disarming = False
+    win = False
 
     # данные на вывод
     level, seconds = lvl, 0
@@ -1219,7 +1278,7 @@ def make_game(lvl, score):
     points_sprite.draw(screen)
 
     clock = pygame.time.Clock()
-    global_frame, frame = 0, 0
+    global_frame, frame, sound_frame, clear_frame = 0, 0, 0, 0
 
     screen.fill((0, 0, 0))
     ex = Field()
@@ -1254,6 +1313,8 @@ def make_game(lvl, score):
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
     sleep(1.5)
+    pygame.mixer.Channel(1).set_volume(0.5)
+    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_1.wav'), 10000)
 
     while running:
         ex.update()
@@ -1280,8 +1341,10 @@ def make_game(lvl, score):
         screen.blit(inky.animation[frame % 2], (inky.x, inky.y))
         screen.blit(clyde.animation[frame % 2], (clyde.x, clyde.y))
         global_frame += 1
+        clear_frame += 1 if not disarming else 0
         seconds = global_frame / fps
-
+        clear_seconds = clear_frame / fps
+        
         for _ in range(3):
             pacman.move()
         pacman.frames()
@@ -1289,50 +1352,73 @@ def make_game(lvl, score):
         pinky.move()
         inky.move()
         clyde.move()
+        
+        sl = (len(food) - len(points_sprite.sprites())) // 49 + 1 if not disarming else -1
+        raw = pygame.mixer.Channel(1).get_sound().get_raw()
+        if disarming and (raw[12], raw[16]) != (254, 2):
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/active_energy.wav'), 10000)
+        if sl == 2 and (raw[12], raw[16]) != (0, 0):
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_2.wav'), 10000)
+        elif sl == 3 and (raw[12], raw[16]) != (253, 4):
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_3.wav'), 10000)
+        elif sl == 4 and (raw[12], raw[16]) != (255, 2):
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_4.wav'), 10000)
+        elif sl == 5 and (raw[12], raw[16]) != (254, 1):
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_5.wav'), 10000)
+
+        if clear_seconds >= 7 - level * 0.4375 and not pinky.in_the_game:
+            pinky.path = iter([(0, -1)] * 3 + [(0.5, 0)])
+            pinky.in_the_game = True
+        if len(food) - len(points_sprite.sprites()) == (48 - 3 * level) and not inky.in_the_game:
+            inky.path = iter([(1, 0)] * 2 + [(0, -1)] * 3 + [(0.5, 0)])
+            inky.in_the_game = True
+        if len(food) - len(points_sprite.sprites()) == (80 - 5 * level) and not clyde.in_the_game:
+            clyde.path = iter([(-1, 0)] * 1 + [(0, -1)] * 3 + [(0.5, 0)])
+            clyde.in_the_game = True
 
         for f in food:
+            if pygame.sprite.collide_mask(f, pacman) and not f.eaten and (global_frame - sound_frame) > 15:
+                pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/wakka.wav'))
+                pygame.mixer.Channel(0).set_volume(0.8)
+                sound_frame = global_frame
             f.update([blinky, pinky, inky, clyde])
-        if seconds == 7:
+        if clear_seconds == 7:
             blinky.scatter = False
-        if seconds == 15:
-            print('игра успешно создана')
-            make_game(level + 1, global_score)
-        if seconds == 27:
+        if clear_seconds == 27:
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = True
-        if seconds == 34:
+        if clear_seconds == 34:
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = False
-        if seconds == 54:
+        if clear_seconds == 54:
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = True
-        if seconds == 59:
+        if clear_seconds == 59:
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = False
-        if seconds == 79:
+        if clear_seconds == 79:
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = True
-        if seconds == 84:
+        if clear_seconds == 84:
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = False
+        
+        if not points_sprite.sprites():
+            running = False
+            win = True
+            
 
-        clock.tick(30)
+        clock.tick(fps)
         pygame.display.flip()
 
     # тут мы вызываем функцию заново - отрисовка нового уровня
     # при условии, которое должно на это указывать
-    if False:
+    if win:
         make_game(level + 1, score)
 
 
 if __name__ == '__main__':
-    pacman = 0
-    points_sprite = 0
-    global_frame = 0
-    level = 0
-    blinky = 0
-    seconds = 0
-    disarming = 0
+    pacman, points_sprite, global_frame, level, blinky, seconds, disarming = 0, 0, 0, 0, 0, 0, 0
     make_game(1, 0)
 
 
