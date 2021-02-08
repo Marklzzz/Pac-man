@@ -1238,6 +1238,7 @@ class Energizer(Object, pygame.sprite.Sprite):
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
             for g in ghosts:
                 g.update_time()
+                g.path = None
             disarming = True
             super().update()
 
@@ -1285,34 +1286,44 @@ def make_game(lvl, score):
     ex.update()
     font = pygame.font.Font('data/PacMan Font.ttf', 25)
 
-    text = font.render("TIME!", True, '#ffcc00')
+    text = font.render("LEVEL  {}".format(lvl), True, '#ffcc00')
     text_x = size[1] // 2 - text.get_width() // 2 - 100
-    text_y = size[0] // 2 - text.get_height() // 2 + 85
+    text_y = size[0] // 2 - text.get_height() // 2 + 156
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
-    sleep(1.5)
+    sleep(3.17)
+    ex.update()
+
+    text = font.render("READY!", True, '#ffcc00')
+    text_x = size[1] // 2 - text.get_width() // 2 - 100
+    text_y = size[0] // 2 - text.get_height() // 2 + 156
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    pygame.display.flip()
+    sleep(0.266)
     ex.update()
 
     text = font.render("SET!", True, '#ffcc00')
     text_x = size[1] // 2 - text.get_width() // 2 - 100
-    text_y = size[0] // 2 - text.get_height() // 2 + 85
+    text_y = size[0] // 2 - text.get_height() // 2 + 156
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
-    sleep(1.5)
+    sleep(0.266)
     ex.update()
 
     text = font.render("PLAY!", True, '#ffcc00')
     text_x = size[1] // 2 - text.get_width() // 2 - 100
-    text_y = size[0] // 2 - text.get_height() // 2 + 85
+    text_y = size[0] // 2 - text.get_height() // 2 + 156
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
-    sleep(1.5)
+    sleep(0.4)
     pygame.mixer.Channel(1).set_volume(0.5)
     pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_1.wav'), 10000)
 
