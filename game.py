@@ -897,10 +897,14 @@ class Blinky(Ghost):
                 pacman_x = int((pacman.x + 11) // cell_size)
                 pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
                 direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
-                free_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
-                free_directions = list(filter(
-                    lambda x: nodes_matrix[coord_y + x[1]][coord_x + x[0]].type != 'wall', free_directions
-                ))
+                good_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
+                free_directions = []
+                for dir_ in good_directions:
+                    try:
+                        if nodes_matrix[coord_y + dir_[1]][coord_x + dir_[0]].type != 'wall':
+                            free_directions.append(dir_)
+                    except IndexError:
+                        pass
                 self.path = iter([random.choice(free_directions) if free_directions else direct])
                 super().pave()
         elif self.scatter:
@@ -955,10 +959,14 @@ class Pinky(Ghost):
                 pacman_x = int((pacman.x + 11) // cell_size)
                 pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
                 direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
-                free_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
-                free_directions = list(filter(
-                    lambda x: nodes_matrix[coord_y + x[1]][coord_x + x[0]].type != 'wall', free_directions
-                ))
+                good_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
+                free_directions = []
+                for dir_ in good_directions:
+                    try:
+                        if nodes_matrix[coord_y + dir_[1]][coord_x + dir_[0]].type != 'wall':
+                            free_directions.append(dir_)
+                    except IndexError:
+                        pass
                 self.path = iter([random.choice(free_directions) if free_directions else direct])
                 super().pave()
         elif self.scatter:
@@ -1013,10 +1021,14 @@ class Inky(Ghost):
                 pacman_x = int((pacman.x + 11) // cell_size)
                 pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
                 direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
-                free_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
-                free_directions = list(filter(
-                    lambda x: nodes_matrix[coord_y + x[1]][coord_x + x[0]].type != 'wall', free_directions
-                ))
+                good_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
+                free_directions = []
+                for dir_ in good_directions:
+                    try:
+                        if nodes_matrix[coord_y + dir_[1]][coord_x + dir_[0]].type != 'wall':
+                            free_directions.append(dir_)
+                    except IndexError:
+                        pass
                 self.path = iter([random.choice(free_directions) if free_directions else direct])
                 super().pave()
         elif self.scatter:
@@ -1074,10 +1086,14 @@ class Clyde(Ghost):
                 super().pave((self.x - diff_x, self.y - diff_y))
             else:
                 direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
-                free_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
-                free_directions = list(filter(
-                    lambda x: nodes_matrix[coord_y + x[1]][coord_x + x[0]].type != 'wall', free_directions
-                ))
+                good_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
+                free_directions = []
+                for dir_ in good_directions:
+                    try:
+                        if nodes_matrix[coord_y + dir_[1]][coord_x + dir_[0]].type != 'wall':
+                            free_directions.append(dir_)
+                    except IndexError:
+                        pass
                 self.path = iter([random.choice(free_directions) if free_directions else direct])
                 super().pave()
         elif self.scatter or self.false_scatter:
@@ -1238,7 +1254,8 @@ class Energizer(Object, pygame.sprite.Sprite):
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
             for g in ghosts:
                 g.update_time()
-                g.path = None
+                if g.in_the_game:
+                    g.path = None
             disarming = True
             super().update()
 
@@ -1334,13 +1351,13 @@ def make_game(lvl, score):
                 running = False
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key in [pygame.K_LEFT, pygame.K_a]:
                     pacman.player_direction = (-1, 0)
-                elif event.key == pygame.K_RIGHT:
+                elif event.key in [pygame.K_RIGHT, pygame.K_d]:
                     pacman.player_direction = (1, 0)
-                elif event.key == pygame.K_UP:
+                elif event.key in [pygame.K_UP, pygame.K_w]:
                     pacman.player_direction = (0, -1)
-                elif event.key == pygame.K_DOWN:
+                elif event.key in [pygame.K_DOWN, pygame.K_s]:
                     pacman.player_direction = (0, 1)
 
         if global_frame % 4 == 0:
@@ -1398,19 +1415,19 @@ def make_game(lvl, score):
         if clear_seconds == 27:
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = True
-        if clear_seconds == 34:
+        if clear_seconds == 34 - 2 * (level >= 4) - 2 * (level >= 10):
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = False
-        if clear_seconds == 54:
+        if clear_seconds == 54 - 2 * (level >= 4) - 2 * (level >= 10):
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = True
-        if clear_seconds == 59:
+        if clear_seconds == 59 - 4 * (level >= 4) - 4 * (level >= 10):
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = False
-        if clear_seconds == 79:
+        if clear_seconds == 79 + 4 * (level >= 4) + 4 * (level >= 10):
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = True
-        if clear_seconds == 84:
+        if clear_seconds == 84 + 4 * (level >= 4) + 4 * (level >= 10):
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = False
         
@@ -1418,7 +1435,6 @@ def make_game(lvl, score):
             running = False
             win = True
             
-
         clock.tick(fps)
         pygame.display.flip()
 
