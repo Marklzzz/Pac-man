@@ -1402,8 +1402,6 @@ def make_game(lvl, score):
     text = font.render("LEVEL  {}".format(lvl), True, '#ffcc00')
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
-    text_w = text.get_width()
-    text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
     sleep(3.17)
@@ -1412,8 +1410,6 @@ def make_game(lvl, score):
     text = font.render("READY!", True, '#ffcc00')
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
-    text_w = text.get_width()
-    text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
     sleep(0.266)
@@ -1422,8 +1418,6 @@ def make_game(lvl, score):
     text = font.render("SET!", True, '#ffcc00')
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
-    text_w = text.get_width()
-    text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
     sleep(0.266)
@@ -1432,8 +1426,6 @@ def make_game(lvl, score):
     text = font.render("PLAY!", True, '#ffcc00')
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
-    text_w = text.get_width()
-    text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
     sleep(0.4)
@@ -1573,15 +1565,14 @@ if __name__ == '__main__':
     screen.blit(text, (text_x, text_y))
     pygame.display.flip()
     while True:
-        flag = False
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                exit()
-            if event.type == pygame.MOUSEBUTTONDOWN and text_x <= event.pos[0] <= text_x + text_w and\
-                    text_y <= event.pos[1] <= text_y + text_h:
-                flag = True
-                break
-        if flag:
+        event = pygame.event.wait()
+        if event.type == pygame.QUIT:
+            exit()
+        if (
+            event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE or
+            event.type == pygame.MOUSEBUTTONDOWN and 
+            -5 <= event.pos[0] - text_x <= text_w + 5 and -5 <= event.pos[1] - text_y <= text_h + 5
+        ):
             break
     text = font.render("TAP TO PLAY", True, (255, 0, 0))
     text_x = size[0] // 2 - text.get_width() // 2
