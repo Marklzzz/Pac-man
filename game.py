@@ -1,6 +1,10 @@
 import os
 import random
-import pygame, pygame.display, pygame.sprite, pygame.font, pygame.mixer, pygame.draw, pygame.transform
+
+import pygame, pygame.display, pygame.sprite
+import pygame.font, pygame.mixer, pygame.draw
+import pygame.transform, pygame.event
+
 from typing import List, Optional, Set, Tuple
 from time import sleep
 
@@ -1295,7 +1299,7 @@ class Pac_man:
 
 class TotalPoints:
     def __init__(self):
-        self.total_points = 0
+        self.value = 0
 
 
 totalpoints = TotalPoints()
@@ -1311,7 +1315,7 @@ class Object(pygame.sprite.Sprite):
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
             self.eaten = True
             points_sprite.remove(self)
-            totalpoints.total_points += 10
+            totalpoints.value += 10
 
 
 class Point(Object, pygame.sprite.Sprite):
@@ -1344,7 +1348,7 @@ class Energizer(Object, pygame.sprite.Sprite):
         if global_frame % 20 in range(10):
             pygame.draw.rect(screen, '#000000', self.rect)
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
-            totalpoints.total_points += 50
+            totalpoints.value += 50
             for g in ghosts:
                 g.update_time()
                 if g.in_the_game:
@@ -1571,6 +1575,8 @@ if __name__ == '__main__':
     while True:
         flag = False
         for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN and text_x <= event.pos[0] <= text_x + text_w and\
                     text_y <= event.pos[1] <= text_y + text_h:
                 flag = True
