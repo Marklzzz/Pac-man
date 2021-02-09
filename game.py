@@ -1555,6 +1555,21 @@ def make_game(lvl, score):
         pygame.display.flip()
 
     if win:
+        ex.update()
+        sleep(1)
+
+        frases = ['YOU WIN!', 'GOOD BOY!', 'PERFECT', 'FANTASTIC']
+
+        text = font.render(random.choice(frases), True, '#ffcc00')
+        text_x = size[0] // 2 - text.get_width() // 2
+        text_y = size[1] // 2 - text.get_height() // 2 + 60
+        text_w = text.get_width()
+        text_h = text.get_height()
+        screen.blit(text, (text_x, text_y))
+        pygame.display.flip()
+        sleep(3)
+        ex.update()
+
         make_game(level + 1, score)
 
 
