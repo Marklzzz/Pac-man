@@ -1486,14 +1486,14 @@ def make_game(lvl, score):
             elif sl == 5 and (raw[12], raw[16]) != (254, 1):
                 pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_5.wav'), 10000)
 
-            if clear_seconds >= 7 - level * 0.4375 and not pinky.in_the_game:
+            if seconds >= 7 - level * 0.4375 and not pinky.in_the_game and not disarming:
                 pinky.path = iter([(0, -1)] * 3 + [(0.5, 0)])
                 pinky.in_the_game = True
-            if len(food) - len(points_sprite.sprites()) == (48 - 3 * level) and not inky.in_the_game:
+            if len(food) - len(points_sprite.sprites()) > (48 - 3 * level) and not inky.in_the_game and not disarming:
                 inky.path = iter([(1, 0)] * 2 + [(0, -1)] * 3 + [(0.5, 0)])
                 inky.in_the_game = True
-            if len(food) - len(points_sprite.sprites()) == (80 - 5 * level) and not clyde.in_the_game:
-                clyde.path = iter([(-1, 0)] * 1 + [(0, -1)] * 3 + [(0.5, 0)])
+            if len(food) - len(points_sprite.sprites()) > (80 - 5 * level) and not clyde.in_the_game and not disarming:
+                clyde.path = iter([(-1, 0)] * 2 + [(0, -1)] * 3 + [(0.5, 0)])
                 clyde.in_the_game = True
 
             if clear_seconds == 7:
@@ -1548,8 +1548,8 @@ if __name__ == '__main__':
     pacman, points_sprite, global_frame, level, blinky, seconds, disarming = 0, 0, 0, 0, 0, 0, 0
     font = pygame.font.Font('data/PacMan Font.ttf', 25)
     text = font.render("TAP TO PLAY", True, '#ffcc00')
-    text_x = size[1] // 2 - text.get_width() // 2 - 100
-    text_y = size[0] // 2 - text.get_height() // 2 + 156
+    text_x = size[0] // 2 - text.get_width() // 2
+    text_y = size[1] // 2 - text.get_height() // 2 + 60
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
@@ -1564,8 +1564,8 @@ if __name__ == '__main__':
         if flag:
             break
     text = font.render("TAP TO PLAY", True, (255, 0, 0))
-    text_x = size[1] // 2 - text.get_width() // 2 - 100
-    text_y = size[0] // 2 - text.get_height() // 2 + 156
+    text_x = size[0] // 2 - text.get_width() // 2
+    text_y = size[1] // 2 - text.get_height() // 2 + 60
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
