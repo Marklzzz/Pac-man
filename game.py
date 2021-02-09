@@ -1,6 +1,6 @@
 import os
 import random
-import pygame, pygame.display, pygame.sprite, pygame.font, pygame.mixer
+import pygame, pygame.display, pygame.sprite, pygame.font, pygame.mixer, pygame.draw
 from typing import List, Optional, Set, Tuple
 from time import sleep
 
@@ -24,7 +24,10 @@ def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Tuple[int, int]
         del reachable[reachable.index(node)]
         explored.append(node)
 
-        new_reachable = get_adjacent_nodes(node) - set(explored)
+        try:
+            new_reachable = get_adjacent_nodes(node) - set(explored)
+        except IndexError:
+            return None
         for adjacent in new_reachable:
             if adjacent not in reachable:
                 reachable.append(adjacent)
@@ -807,7 +810,7 @@ class Ghost:
         self.last_seconds = 0
 
         self.angry = False  # злой режим для Блинки
-        self.scatter = False  # режим разбегания
+        self.scatter = True  # режим разбегания
         self.in_the_game = False
 
     def update_time(self):
@@ -832,8 +835,9 @@ class Ghost:
                     if pre_path:
                         self.path = iter(pre_path)
                 self.direction = next(self.path)
-                self.counter = (8 if self.angry else 12) if not disarming else 16
-                self.speed = (3 if self.angry else 2) if not disarming else 1.5
+                in_the_passage = (coord_y == 14 and coord_x in [0, 1, 2, 3, 4, 5, 22, 23, 24, 25, 26, 27])
+                self.counter = (8 if self.angry else 12) if not disarming and not in_the_passage else 16
+                self.speed = (3 if self.angry else 2) if not disarming and not in_the_passage else 1.5
             self.x = round(self.x + self.direction[0] * self.speed, 1)
             self.y = round(self.y + self.direction[1] * self.speed, 1)
             self.rect.x = self.x
@@ -896,7 +900,10 @@ class Blinky(Ghost):
             else:
                 pacman_x = int((pacman.x + 11) // cell_size)
                 pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
-                direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                try:
+                    direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                except Exception:
+                    direct = None
                 good_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
                 free_directions = []
                 for dir_ in good_directions:
@@ -905,8 +912,23 @@ class Blinky(Ghost):
                             free_directions.append(dir_)
                     except IndexError:
                         pass
-                self.path = iter([random.choice(free_directions) if free_directions else direct])
+                if direct:
+                    self.path = iter([random.choice(free_directions) if free_directions else direct])
+                else:
+                    self.path = iter([self.direction] * 7)
                 super().pave()
+        elif (coord_x, coord_y) == (5, 14) and self.direction == (-1, 0):
+            self.path = iter([(-1, 0)] * 6)
+            super().pave()
+        elif (coord_x, coord_y) == (-1, 14) and self.direction == (-1, 0):
+            self.x = 28 * cell_size - 12
+            self.rect.x = self.x
+        elif (coord_x, coord_y) == (22, 14) and self.direction == (1, 0):
+            self.path = iter([(1, 0)] * 6)
+            super().pave()
+        elif (coord_x, coord_y) == (28, 14) and self.direction == (1, 0):
+            self.x = -1 * cell_size - 10
+            self.rect.x = self.x
         elif self.scatter:
             if (coord_x, coord_y) != (14, 11) and not self.path:
                 self.start_dispersion((coord_x, coord_y))
@@ -958,7 +980,10 @@ class Pinky(Ghost):
             else:
                 pacman_x = int((pacman.x + 11) // cell_size)
                 pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
-                direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                try:
+                    direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                except Exception:
+                    direct = None
                 good_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
                 free_directions = []
                 for dir_ in good_directions:
@@ -967,8 +992,23 @@ class Pinky(Ghost):
                             free_directions.append(dir_)
                     except IndexError:
                         pass
-                self.path = iter([random.choice(free_directions) if free_directions else direct])
+                if direct:
+                    self.path = iter([random.choice(free_directions) if free_directions else direct])
+                else:
+                    self.path = iter([self.direction] * 7)
                 super().pave()
+        elif (coord_x, coord_y) == (5, 14) and self.direction == (-1, 0):
+            self.path = iter([(-1, 0)] * 6)
+            super().pave()
+        elif (coord_x, coord_y) == (-1, 14) and self.direction == (-1, 0):
+            self.x = 28 * cell_size - 12
+            self.rect.x = self.x
+        elif (coord_x, coord_y) == (22, 14) and self.direction == (1, 0):
+            self.path = iter([(1, 0)] * 6)
+            super().pave()
+        elif (coord_x, coord_y) == (28, 14) and self.direction == (1, 0):
+            self.x = -1 * cell_size - 10
+            self.rect.x = self.x
         elif self.scatter:
             if (coord_x, coord_y) == (6, 5):
                 self.path = iter(find_path(nodes_matrix[5][6], nodes_matrix[1][2]) + [(-1, 0)])
@@ -1020,7 +1060,10 @@ class Inky(Ghost):
             else:
                 pacman_x = int((pacman.x + 11) // cell_size)
                 pacman_y = int((pacman.y + 11 - 3 * cell_size) // cell_size)
-                direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                try:
+                    direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                except Exception:
+                    direct = None
                 good_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
                 free_directions = []
                 for dir_ in good_directions:
@@ -1029,8 +1072,23 @@ class Inky(Ghost):
                             free_directions.append(dir_)
                     except IndexError:
                         pass
-                self.path = iter([random.choice(free_directions) if free_directions else direct])
+                if direct:
+                    self.path = iter([random.choice(free_directions) if free_directions else direct])
+                else:
+                    self.path = iter([self.direction] * 7)
                 super().pave()
+        elif (coord_x, coord_y) == (5, 14) and self.direction == (-1, 0):
+            self.path = iter([(-1, 0)] * 6)
+            super().pave()
+        elif (coord_x, coord_y) == (-1, 14) and self.direction == (-1, 0):
+            self.x = 28 * cell_size - 12
+            self.rect.x = self.x
+        elif (coord_x, coord_y) == (22, 14) and self.direction == (1, 0):
+            self.path = iter([(1, 0)] * 6)
+            super().pave()
+        elif (coord_x, coord_y) == (28, 14) and self.direction == (1, 0):
+            self.x = -1 * cell_size - 10
+            self.rect.x = self.x
         elif self.scatter:
             if (coord_x, coord_y) == (21, 23):
                 self.path = iter(find_path(nodes_matrix[23][21], nodes_matrix[29][22])[1:] + [(-1, 0)] * 3)
@@ -1086,7 +1144,10 @@ class Clyde(Ghost):
             if 1 <= diff_x <= 48 and 1 <= diff_y <= 48:
                 super().pave((self.x - diff_x, self.y - diff_y))
             else:
-                direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                try:
+                    direct = find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[pacman_y][pacman_x])[0]
+                except Exception:
+                    direct = None
                 good_directions = {(-1, 0), (1, 0), (0, 1), (0, -1)} - {direct}
                 free_directions = []
                 for dir_ in good_directions:
@@ -1095,8 +1156,23 @@ class Clyde(Ghost):
                             free_directions.append(dir_)
                     except IndexError:
                         pass
-                self.path = iter([random.choice(free_directions) if free_directions else direct])
+                if direct:
+                    self.path = iter([random.choice(free_directions) if free_directions else direct])
+                else:
+                    self.path = iter([self.direction] * 7)
                 super().pave()
+        elif (coord_x, coord_y) == (5, 14) and self.direction == (-1, 0):
+            self.path = iter([(-1, 0)] * 6)
+            super().pave()
+        elif (coord_x, coord_y) == (-1, 14) and self.direction == (-1, 0):
+            self.x = 28 * cell_size - 12
+            self.rect.x = self.x
+        elif (coord_x, coord_y) == (22, 14) and self.direction == (1, 0):
+            self.path = iter([(1, 0)] * 6)
+            super().pave()
+        elif (coord_x, coord_y) == (28, 14) and self.direction == (1, 0):
+            self.x = -1 * cell_size - 10
+            self.rect.x = self.x
         elif self.scatter or self.false_scatter:
             if self.false_scatter and length_to_pacman > 8:
                 self.false_scatter = False
@@ -1252,6 +1328,8 @@ class Energizer(Object, pygame.sprite.Sprite):
 
     def update(self, ghosts):
         global disarming
+        if global_frame % 20 in range(10):
+            pygame.draw.rect(screen, '#000000', self.rect)
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
             for g in ghosts:
                 g.update_time()
@@ -1363,7 +1441,16 @@ def make_game(lvl, score):
 
         if global_frame % 4 == 0:
             frame += 1
+            
         points_sprite.draw(screen)
+        
+        for f in food:
+            if pygame.sprite.collide_mask(f, pacman) and not f.eaten and (global_frame - sound_frame) > 15:
+                pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/wakka.wav'))
+                pygame.mixer.Channel(0).set_volume(0.8)
+                sound_frame = global_frame
+            f.update([blinky, pinky, inky, clyde])
+        
         screen.blit(pacman.animation[pacman.direction][pacman.frame % 3], (pacman.x, pacman.y))
         screen.blit(blinky.animation[frame % 2], (blinky.x, blinky.y))
         screen.blit(pinky.animation[frame % 2], (pinky.x, pinky.y))
@@ -1373,6 +1460,7 @@ def make_game(lvl, score):
         clear_frame += 1 if not disarming else 0
         seconds = global_frame / fps
         clear_seconds = clear_frame / fps
+        
         
         for _ in range(3):
             pacman.move()
@@ -1405,14 +1493,9 @@ def make_game(lvl, score):
             clyde.path = iter([(-1, 0)] * 1 + [(0, -1)] * 3 + [(0.5, 0)])
             clyde.in_the_game = True
 
-        for f in food:
-            if pygame.sprite.collide_mask(f, pacman) and not f.eaten and (global_frame - sound_frame) > 15:
-                pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/wakka.wav'))
-                pygame.mixer.Channel(0).set_volume(0.8)
-                sound_frame = global_frame
-            f.update([blinky, pinky, inky, clyde])
         if clear_seconds == 7:
-            blinky.scatter = False
+            for ghost in (blinky, pinky, inky, clyde):
+                ghost.scatter = False
         if clear_seconds == 27:
             for ghost in (blinky, pinky, inky, clyde):
                 ghost.scatter = True

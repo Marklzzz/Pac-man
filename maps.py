@@ -86,7 +86,7 @@ nodes_matrix: List[List[Cell]] = [
     #       F   -      -   F
     [*(Cell(x, 14, 0, 0) for x in r(0, 6)), Cell(6, 14), *(Cell(x, 14, 0, 0) for x in r(7, 10)), Cell(10, 14, 1),
      *(Cell(x, 14, 0, 0) for x in r(11, 17)), Cell(17, 14, 1), *(Cell(x, 14, 0, 0) for x in r(18, 21)), Cell(21, 14),
-     *(Cell(x, 14, 0, 0) for x in r(22, 28))],
+     *(Cell(x, 14, 0, 0) for x in r(22, 28)), Cell(28, 14, 0, 0)],
     # ------F-- -      - --F------
     [*(Cell(x, 15, 1) for x in r(0, 6)), Cell(6, 15), Cell(7, 15, 1), Cell(8, 15, 1), Cell(9, 15, 0, 0), Cell(10, 15, 1),
      *(Cell(x, 15, 0, 0) for x in r(11, 17)), Cell(17, 15, 1), Cell(18, 15, 0, 0), Cell(19, 15, 1), Cell(20, 15, 1),
@@ -145,6 +145,7 @@ nodes_matrix: List[List[Cell]] = [
     # ----------------------------
     [Cell(x, 30, 1) for x in r(28)]
 ]
+
 
 if __name__ == '__main__':
     print(*[''.join([str(el) for el in l])for l in nodes_matrix], sep='\n')
