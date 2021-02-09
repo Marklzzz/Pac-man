@@ -1530,6 +1530,30 @@ def make_game(lvl, score):
 
 if __name__ == '__main__':
     pacman, points_sprite, global_frame, level, blinky, seconds, disarming = 0, 0, 0, 0, 0, 0, 0
+    font = pygame.font.Font('data/PacMan Font.ttf', 25)
+    text = font.render("TAP TO PLAY", True, '#ffcc00')
+    text_x = size[1] // 2 - text.get_width() // 2 - 100
+    text_y = size[0] // 2 - text.get_height() // 2 + 156
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    pygame.display.flip()
+    while True:
+        flag = False
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN and text_x <= event.pos[0] <= text_x + text_w and\
+                    text_y <= event.pos[1] <= text_y + text_h:
+                flag = True
+                break
+        if flag:
+            break
+    text = font.render("TAP TO PLAY", True, (255, 0, 0))
+    text_x = size[1] // 2 - text.get_width() // 2 - 100
+    text_y = size[0] // 2 - text.get_height() // 2 + 156
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    pygame.display.flip()
     make_game(1, 0)
 
 
