@@ -1362,8 +1362,7 @@ class Fruits(Object):
         super().__init__(x, y)
 
 
-def make_game(lvl, score):
-    pygame.mixer.init()
+def make_game(lvl, score, restart=False):
     pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/game_start.wav'))
     global screen, pacman, points_sprite, global_frame, blinky, level, seconds, disarming
     fps = 60
@@ -1392,14 +1391,14 @@ def make_game(lvl, score):
     points_sprite.draw(screen)
 
     clock = pygame.time.Clock()
-    global_frame, frame, sound_frame, clear_frame = 0, 0, 0, 0
+    global_frame, frame, sound_frame, clear_frame = 0, 0, 0, fps * 7 - 1 if restart else 0
 
     screen.fill((0, 0, 0))
     ex = Field()
     ex.update()
-    font = pygame.font.Font('data/PacMan Font.ttf', 25)
+    font = pygame.font.Font('data/PacMan Font.ttf', 25 if level != 16 else 20)
 
-    text = font.render("LEVEL  {}".format(lvl), True, '#ffcc00')
+    text = font.render("LEVEL  {}".format(lvl) if level != 16 else 'LAST LEVEL 16', True, '#ffcc00')
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
     screen.blit(text, (text_x, text_y))
@@ -1436,7 +1435,7 @@ def make_game(lvl, score):
         ex.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                exit()
 
             if event.type == pygame.KEYDOWN:
                 if event.key in [pygame.K_LEFT, pygame.K_a]:
@@ -1469,6 +1468,7 @@ def make_game(lvl, score):
         screen.blit(clyde.animation[frame % 2], (clyde.x, clyde.y))
         
         if not paused:
+            pygame.mixer.Channel(1).set_volume(0.5)
             global_frame += 1
             clear_frame += 1 if not disarming else 0
             seconds = global_frame / fps
@@ -1528,19 +1528,19 @@ def make_game(lvl, score):
                 for ghost in (blinky, pinky, inky, clyde):
                     ghost.scatter = False
         else:
-            blured = pygame.transform.smoothscale(screen, (84, 108))
+            pygame.mixer.Channel(1).set_volume(0)
+            blured = pygame.transform.smoothscale(screen, (63, 81))
             blured = pygame.transform.smoothscale(blured, size)
             dark = pygame.Surface(size)
             pygame.draw.rect(dark, (0, 0, 0), (0, 0, size[0], size[1]))
             dark.set_alpha(80)
             blured.blit(dark, (0, 0))
             screen.blit(blured, (0, 0))
+            
             font = pygame.font.Font('data/PacMan Font.ttf', 55)
             text = font.render("PAUSED", True, '#ffffff')
             text_x = size[0] // 2 - text.get_width() // 2
             text_y = size[1] // 2 - text.get_height() // 2
-            text_w = text.get_width()
-            text_h = text.get_height()
             screen.blit(text, (text_x, text_y))
         
         if not points_sprite.sprites():
@@ -1549,30 +1549,46 @@ def make_game(lvl, score):
             
         clock.tick(fps)
         pygame.display.flip()
+        
+    pygame.mixer.Channel(1).stop()
 
     if win:
         ex.update()
-        sleep(1)
+        pygame.display.flip()
+        sleep(2)
 
-        frases = ['YOU WIN!', 'GOOD BOY!', 'PERFECT', 'FANTASTIC']
+        phrases = ['GOOD   BOY!', 'PERFECT!', 'FANTASTIC!', 'WOW!  GREAT!', 'EXCELLENT!']
 
-        text = font.render(random.choice(frases), True, '#ffcc00')
+        font = pygame.font.Font('data/PacMan Font.ttf', 25)
+        text = font.render(random.choice(phrases), True, '#ffff00')
         text_x = size[0] // 2 - text.get_width() // 2
         text_y = size[1] // 2 - text.get_height() // 2 + 60
-        text_w = text.get_width()
-        text_h = text.get_height()
         screen.blit(text, (text_x, text_y))
         pygame.display.flip()
         sleep(3)
         ex.update()
 
         make_game(level + 1, score)
+    else:
+        ex.update()
+        pygame.display.flip()
+        sleep(2)
+        font = pygame.font.Font('data/PacMan Font.ttf', 25)
+        text = font.render('GAME     OVER', True, '#ff0000')
+        text_x = size[0] // 2 - text.get_width() // 2
+        text_y = size[1] // 2 - text.get_height() // 2 + 60
+        screen.blit(text, (text_x, text_y))
+        pygame.display.flip()
+        sleep(3)
+        ex.update()
+        
 
 
 if __name__ == '__main__':
     pacman, points_sprite, global_frame, level, blinky, seconds, disarming = 0, 0, 0, 0, 0, 0, 0
+    pygame.mixer.init()
     font = pygame.font.Font('data/PacMan Font.ttf', 25)
-    text = font.render("TAP TO PLAY", True, '#ffcc00')
+    text = font.render("TAP  TO   PLAY", True, '#ffcc00')
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
     text_w = text.get_width()
@@ -1588,14 +1604,8 @@ if __name__ == '__main__':
             event.type == pygame.MOUSEBUTTONDOWN and 
             -5 <= event.pos[0] - text_x <= text_w + 5 and -5 <= event.pos[1] - text_y <= text_h + 5
         ):
+            pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
             break
-    text = font.render("TAP TO PLAY", True, (255, 0, 0))
-    text_x = size[0] // 2 - text.get_width() // 2
-    text_y = size[1] // 2 - text.get_height() // 2 + 60
-    text_w = text.get_width()
-    text_h = text.get_height()
-    screen.blit(text, (text_x, text_y))
-    pygame.display.flip()
     make_game(1, 0)
 
 
