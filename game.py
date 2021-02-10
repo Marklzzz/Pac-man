@@ -117,15 +117,12 @@ important_points = ((6, 1), (21, 1), (1, 5), (6, 5), (9, 5), (12, 5), (15, 5), (
 fruits_order = [
     (), ('cherry',), ('cherry', 'strawberry'), ('cherry', 'strawberry', 'peach'),
     ('cherry', 'strawberry', 'peach', 'peach'), ('cherry', 'strawberry', 'peach', 'peach', 'apple'),
-    ('cherry', 'strawberry', 'peach', 'peach', 'apple'),
     ('cherry', 'strawberry', 'peach', 'peach', 'apple', 'apple'),
     ('cherry', 'strawberry', 'peach', 'peach', 'apple', 'apple', 'melon'),
-    ('strawberry', 'peach', 'peach', 'apple', 'apple', 'melon', 'melon'),
     ('strawberry', 'peach', 'peach', 'apple', 'apple', 'melon', 'melon'),
     ('peach', 'peach', 'apple', 'apple', 'melon', 'melon', 'spaceship'),
     ('peach', 'apple', 'apple', 'melon', 'melon', 'spaceship', 'spaceship'),
     ('apple', 'apple', 'melon', 'melon', 'spaceship', 'spaceship', 'bell'),
-    ('apple', 'melon', 'melon', 'spaceship', 'spaceship', 'bell', 'bell'),
     ('apple', 'melon', 'melon', 'spaceship', 'spaceship', 'bell', 'bell'),
     ('melon', 'melon', 'spaceship', 'spaceship', 'bell', 'bell', 'key'),
     ('melon', 'spaceship', 'spaceship', 'bell', 'bell', 'key', 'key'),
@@ -1334,7 +1331,7 @@ class TotalPoints:
         elif self.next_by_order == 'key':
             self.points += 5000
         
-        self.fruits += 1 if self.fruits < 22 else 0
+        self.fruits += 1 if self.fruits < len(fruits_order) - 1 else 0
     
     def show_fruit(self):
         if self.fruits + 1 < len(fruits_order):
