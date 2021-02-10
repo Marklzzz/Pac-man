@@ -1410,9 +1410,23 @@ class Energizer(Object, pygame.sprite.Sprite):
             super().update()
 
 
-class Fruit(Object):
+class Fruit(Object, pygame.sprite.Sprite):
+    image = load_image('data/fruits/cherry.png', -1, (cell_size, cell_size))
+
     def __init__(self, x, y):
         super().__init__(x, y)
+        self.image = Fruit.image
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = x
+        self.rect.y = y
+        points_sprite.add(self)
+
+    def update(self, *args):
+        if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
+            self.eaten = True
+            points_sprite.remove(self)
+            totalpoints.increase_points(100)
 
 
 def render_counters():
@@ -1543,6 +1557,9 @@ def make_game(lvl, restart=False):
             frame += 1
             
         points_sprite.draw(screen)
+
+        if len(points_sprite) == 174 or len(points_sprite) == 74:
+            food.append(Fruit(cell_size * 14 - 11, cell_size * 26 - 11))
         
         for f in food:
             if pygame.sprite.collide_mask(f, pacman) and not f.eaten and (global_frame - sound_frame) > 15:
@@ -1563,8 +1580,8 @@ def make_game(lvl, restart=False):
             clear_frame += 1 if not disarming else 0
             seconds = global_frame / fps
             clear_seconds = clear_frame / fps
-            
-            
+
+
             for _ in range(3):
                 pacman.move()
             pacman.frames()
