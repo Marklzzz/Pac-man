@@ -1307,6 +1307,17 @@ class TotalPoints:
         self.points = 0
         self.lifes = 3
         self.fruits = 0
+        with open('scores.txt', 'r') as file:
+            string = file.readline()
+            if string:
+                if ',' in string:
+                    scores = list(map(int, string.split(', ')))
+                else:
+                    scores = [int(string)]
+            else:
+                scores = [0]
+        scores = sorted(scores)[::-1]
+        self.high_score = str(scores[0]) if scores[0] < 999999 else '999999'
     
     def increase_points(self, num):
         self.points += num
@@ -1413,7 +1424,7 @@ def render_counters():
         text = font.render('999999', True, '#dedeff')
     text_x, text_y = 24, 24
     screen.blit(text, (text_x, text_y))
-    text = font.render('000000', True, '#dedeff')
+    text = font.render(totalpoints.high_score, True, '#dedeff')
     text_x, text_y = 264, 24
     screen.blit(text, (text_x, text_y))
     
@@ -1436,7 +1447,6 @@ def make_game(lvl, score, restart=False):
 
     # данные на вывод
     level, seconds = lvl, 0
-    global_score = score
 
     points_sprite = pygame.sprite.Group()
     food = []
@@ -1641,7 +1651,12 @@ def make_game(lvl, score, restart=False):
         pygame.display.flip()
         sleep(3)
         ex.update()
-
+        with open('scores.txt', 'a') as file:
+            with open('scores.txt', 'r') as test_file:
+                if test_file.readlines():
+                    file.write(', ' + str(totalpoints.points))
+                else:
+                    file.write(str(totalpoints.points))
         make_game(level + 1, score)
     else:
         ex.update()
@@ -1657,12 +1672,49 @@ def make_game(lvl, score, restart=False):
         pygame.display.flip()
         sleep(3)
         ex.update()
+        with open('scores.txt', 'a') as file:
+            with open('scores.txt', 'r') as test_file:
+                if test_file.readlines():
+                    file.write(', ' + str(totalpoints.points))
+                else:
+                    file.write(str(totalpoints.points))
         
 
 if __name__ == '__main__':
     totalpoints = TotalPoints()
     pacman, points_sprite, global_frame, level, blinky, seconds, disarming = 0, 0, 0, 0, 0, 0, 0
     pygame.mixer.init()
+
+    logo = pygame.transform.scale(pygame.image.load('data/other/logos.png'),
+                                                   (384, 128))
+    screen.blit(logo, (155, 100))
+
+    font = pygame.font.Font('data/PacMan Font.ttf', 45)
+    text = font.render("PAC-MAN", True, '#FDD700')
+    screen.blit(text, (200, 250))
+
+    font = pygame.font.Font('data/PacMan Font.ttf', 15)
+    text = font.render("BY PAVEL OVCHINNIKOV", True, (0, 255, 0))
+    text_x = size[0] // 2 - text.get_width() + 145
+    text_y = size[1] // 2 - text.get_height() // 2 + 300
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+
+    text = font.render("MARK ERMOLAEV", True, (0, 255, 0))
+    text_x = size[0] // 2 - text.get_width() + 100
+    text_y = size[1] // 2 - text.get_height() // 2 + 325
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+
+    text = font.render("VALERIY PROSHAK", True, (0, 255, 0))
+    text_x = size[0] // 2 - text.get_width() + 110
+    text_y = size[1] // 2 - text.get_height() // 2 + 350
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+
     font = pygame.font.Font('data/PacMan Font.ttf', 25)
     text = font.render("TAP  TO   PLAY", True, '#ffcc00')
     text_x = size[0] // 2 - text.get_width() // 2
@@ -1670,8 +1722,10 @@ if __name__ == '__main__':
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
+
     render_counters()
     pygame.display.flip()
+    pygame.display.set_caption('PAC-MAN')
     while True:
         event = pygame.event.wait()
         if event.type == pygame.QUIT:
@@ -1681,6 +1735,15 @@ if __name__ == '__main__':
             event.type == pygame.MOUSEBUTTONDOWN and 
             -5 <= event.pos[0] - text_x <= text_w + 5 and -5 <= event.pos[1] - text_y <= text_h + 5
         ):
+            font = pygame.font.Font('data/PacMan Font.ttf', 25)
+            text = font.render("TAP  TO   PLAY", True, (255, 0, 0))
+            text_x = size[0] // 2 - text.get_width() // 2
+            text_y = size[1] // 2 - text.get_height() // 2 + 60
+            text_w = text.get_width()
+            text_h = text.get_height()
+            screen.blit(text, (text_x, text_y))
+            pygame.display.flip()
+            sleep(0.5)
             pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
             break
     make_game(1, 0)
