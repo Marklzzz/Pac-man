@@ -1535,6 +1535,7 @@ def make_game(lvl, restart=False):
                     pacman.player_direction = (0, 1)
                 elif event.key == pygame.K_p:
                     paused = not paused
+                    pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
                 elif event.key == pygame.K_SPACE:
                     totalpoints.eat_fruit()
 
@@ -1796,7 +1797,7 @@ if __name__ == '__main__':
     font = pygame.font.Font('data/PacMan Font.ttf', 25)
     text = font.render("TAP  TO   PLAY", True, '#ffcc00')
     text_x = size[0] // 2 - text.get_width() // 2
-    text_y = size[1] // 2 - text.get_height() // 2 + 60
+    text_y = size[1] // 2 - text.get_height() // 2
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
@@ -1821,10 +1822,11 @@ if __name__ == '__main__':
                 event.type == pygame.MOUSEBUTTONDOWN and 
                 -5 <= event.pos[0] - text_x <= text_w + 5 and -5 <= event.pos[1] - text_y <= text_h + 5
             ):
+                pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
                 font = pygame.font.Font('data/PacMan Font.ttf', 25)
                 text = font.render("TAP  TO   PLAY", True, '#b69200')
                 text_x = size[0] // 2 - text.get_width() // 2
-                text_y = size[1] // 2 - text.get_height() // 2 + 60
+                text_y = size[1] // 2 - text.get_height() // 2
                 text_w = text.get_width()
                 text_h = text.get_height()
                 screen.blit(load_image(
@@ -1833,7 +1835,6 @@ if __name__ == '__main__':
                 screen.blit(text, (text_x, text_y))
                 pygame.display.flip()
                 sleep(0.5)
-                pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
                 running = False
         screen.blit(load_image('data/other/logo{}.png'.format(cycle[global_frame // 10]), size=(128, 128)), (272, 100))
         clock.tick(60)
