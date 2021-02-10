@@ -1411,7 +1411,10 @@ class Energizer(Object, pygame.sprite.Sprite):
 
 
 class Fruit(Object, pygame.sprite.Sprite):
-    image = load_image('data/fruits/cherry.png', -1, (cell_size, cell_size))
+    global totalpoints
+    fruits = totalpoints.show_fruit()[0]
+    for i in range(len(fruits)):
+        image = load_image('data/fruits/{}.png'.format(fruits[i]), (int(1.5 * cell_size), int(1.5 * cell_size)))
 
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -1426,6 +1429,7 @@ class Fruit(Object, pygame.sprite.Sprite):
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
             self.eaten = True
             points_sprite.remove(self)
+            totalpoints.eat_fruit()
             totalpoints.increase_points(100)
 
 
@@ -1457,7 +1461,6 @@ def render_counters():
     for i in range(len(fruits)):
         fimage = load_image('data/fruits/{}.png'.format(fruits[i]))
         screen.blit(fimage, (26 * cell_size - 16 - 45 * i, 34 * cell_size))
-
 
 def make_game(lvl, restart=False):
     pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/game_start.wav'))
@@ -1551,8 +1554,7 @@ def make_game(lvl, restart=False):
                     paused = not paused
                     pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
                 elif event.key == pygame.K_SPACE:
-                    totalpoints.eat_fruit()
-
+                    food.append(Fruit(cell_size * 14 - 11, cell_size * 26 - 11))
         if global_frame % 4 == 0:
             frame += 1
             
@@ -1774,7 +1776,7 @@ if __name__ == '__main__':
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     
-    text = font.render("BOUNS   PAC- MAN   FOR   10000 PTS", True, '#b69200')
+    text = font.render("BONUS   PAC- MAN   FOR   10000 PTS", True, '#b69200')
     text_x = (size[0] - text.get_width()) // 2
     text_y = (size[1] - text.get_height()) // 2 + 220
     text_w = text.get_width()
