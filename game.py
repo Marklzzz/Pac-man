@@ -114,6 +114,28 @@ important_points = ((6, 1), (21, 1), (1, 5), (6, 5), (9, 5), (12, 5), (15, 5), (
                     (18, 17), (6, 20), (9, 20), (18, 20), (21, 20), (6, 23), (9, 23), (12, 23), (15, 23),
                     (18, 23), (21, 23), (3, 26), (24, 26), (12, 26), (15, 26), (26, 1))
 
+fruits_order = [
+    (), ('cherry',), ('cherry', 'strawberry'), ('cherry', 'strawberry', 'peach'),
+    ('cherry', 'strawberry', 'peach', 'peach'), ('cherry', 'strawberry', 'peach', 'peach', 'apple'),
+    ('cherry', 'strawberry', 'peach', 'peach', 'apple'),
+    ('cherry', 'strawberry', 'peach', 'peach', 'apple', 'apple'),
+    ('cherry', 'strawberry', 'peach', 'peach', 'apple', 'apple', 'melon'),
+    ('strawberry', 'peach', 'peach', 'apple', 'apple', 'melon', 'melon'),
+    ('strawberry', 'peach', 'peach', 'apple', 'apple', 'melon', 'melon'),
+    ('peach', 'peach', 'apple', 'apple', 'melon', 'melon', 'spaceship'),
+    ('peach', 'apple', 'apple', 'melon', 'melon', 'spaceship', 'spaceship'),
+    ('apple', 'apple', 'melon', 'melon', 'spaceship', 'spaceship', 'bell'),
+    ('apple', 'melon', 'melon', 'spaceship', 'spaceship', 'bell', 'bell'),
+    ('apple', 'melon', 'melon', 'spaceship', 'spaceship', 'bell', 'bell'),
+    ('melon', 'melon', 'spaceship', 'spaceship', 'bell', 'bell', 'key'),
+    ('melon', 'spaceship', 'spaceship', 'bell', 'bell', 'key', 'key'),
+    ('spaceship', 'spaceship', 'bell', 'bell', 'key', 'key', 'key'),
+    ('spaceship', 'bell', 'bell', 'key', 'key', 'key', 'key'),
+    ('bell', 'bell', 'key', 'key', 'key', 'key', 'key'),
+    ('bell', 'key', 'key', 'key', 'key', 'key', 'key'),
+    ('key', 'key', 'key', 'key', 'key', 'key', 'key'),
+]
+
 class Field:
 
     def __init__(self):
@@ -168,20 +190,6 @@ class Field:
         self.angle_frame_4 = pygame.transform.scale(pygame.image.load('data/mazeparts/угол блока ↓→.png'),
                                                     (cell_size, cell_size))
 
-        self.Z = pygame.transform.scale(pygame.image.load('data/mazeparts/Z-переход.png'),
-                                        (cell_size, cell_size))
-        self.S = pygame.transform.scale(pygame.image.load('data/mazeparts/S-переход.png'),
-                                        (cell_size, cell_size))
-        self.M = pygame.transform.scale(pygame.image.load('data/mazeparts/M-переход.png'),
-                                        (cell_size, cell_size))
-        self.W = pygame.transform.scale(pygame.image.load('data/mazeparts/W-переход.png'),
-                                        (cell_size, cell_size))
-
-        self.rotate_angle_1 = pygame.transform.scale(pygame.image.load('data/mazeparts/центр поворот ↑→.png'),
-                                                     (cell_size, cell_size))
-
-        self.rotate_angle_2 = pygame.transform.scale(pygame.image.load('data/mazeparts/центр поворот ↑←.png'),
-                                                     (cell_size, cell_size))
         self.make_1_line()
         self.make_2_line()
         self.make_3_line()
@@ -1299,10 +1307,40 @@ class Pac_man:
 
 class TotalPoints:
     def __init__(self):
-        self.value = 0
-
-
-totalpoints = TotalPoints()
+        self.points = 0
+        self.lifes = 3
+        self.fruits = 1
+    
+    def increase_points(self, num):
+        self.points += num
+        if self.points % 10000 == 0:
+            self.lifes += 1 if self.lifes < 5 else 0
+    
+    def eat_fruit(self):
+        if self.next_by_order == 'cherry':
+            self.points += 100
+        elif self.next_by_order == 'strawberry':
+            self.points += 300
+        elif self.next_by_order == 'peach':
+            self.points += 500
+        elif self.next_by_order == 'apple':
+            self.points += 700
+        elif self.next_by_order == 'melon':
+            self.points += 1000
+        elif self.next_by_order == 'spaceship':
+            self.points += 2000
+        elif self.next_by_order == 'bell':
+            self.points += 3000
+        elif self.next_by_order == 'key':
+            self.points += 5000
+        
+        self.fruits += 1 if self.fruits < 22 else 0
+    
+    def show_fruit(self):
+        if self.fruits + 1 < len(fruits_order):
+            self.next_by_order = fruits_order[self.fruits + 1][-1]
+        fruits_to_show = fruits_order[self.fruits]
+        return (fruits_to_show, self.next_by_order)
 
 
 class Object(pygame.sprite.Sprite):
@@ -1315,7 +1353,7 @@ class Object(pygame.sprite.Sprite):
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
             self.eaten = True
             points_sprite.remove(self)
-            totalpoints.value += 10
+            totalpoints.increase_points(10)
 
 
 class Point(Object, pygame.sprite.Sprite):
@@ -1348,7 +1386,7 @@ class Energizer(Object, pygame.sprite.Sprite):
         if global_frame % 20 in range(10):
             pygame.draw.rect(screen, '#000000', self.rect)
         if pygame.sprite.collide_mask(self, pacman) and not self.eaten:
-            totalpoints.value += 50
+            totalpoints.increase_points(50)
             for g in ghosts:
                 g.update_time()
                 if g.in_the_game:
@@ -1357,9 +1395,39 @@ class Energizer(Object, pygame.sprite.Sprite):
             super().update()
 
 
-class Fruits(Object):
+class Fruit(Object):
     def __init__(self, x, y):
         super().__init__(x, y)
+
+
+def render_counters():
+    font = pygame.font.Font('data/PacMan Font.ttf', 24)
+    text = font.render('1UP', True, '#dedeff')
+    text_x, text_y = 72, 0
+    screen.blit(text, (text_x, text_y))
+    text = font.render('HIGH', True, '#dedeff')
+    text_x, text_y = 216, 0
+    screen.blit(text, (text_x, text_y))
+    text = font.render('SCORE', True, '#dedeff')
+    text_x, text_y = 336, 0
+    screen.blit(text, (text_x, text_y))
+    text = font.render('0' * (6 - len(str(totalpoints.points))) + str(totalpoints.points), True, '#dedeff')
+    if totalpoints.points > 999999:
+        text = font.render('999999', True, '#dedeff')
+    text_x, text_y = 24, 24
+    screen.blit(text, (text_x, text_y))
+    text = font.render('000000', True, '#dedeff')
+    text_x, text_y = 264, 24
+    screen.blit(text, (text_x, text_y))
+    
+    life = load_image('data/other/life.png')
+    for i in range(totalpoints.lifes - 1):
+        screen.blit(life, (16 + 45 * i, 34 * cell_size))
+    
+    fruits = totalpoints.show_fruit()[0]
+    for i in range(len(fruits)):
+        fimage = load_image('data/fruits/{}.png'.format(fruits[i]))
+        screen.blit(fimage, (26 * cell_size - 16 - 45 * i, 34 * cell_size))
 
 
 def make_game(lvl, score, restart=False):
@@ -1402,6 +1470,7 @@ def make_game(lvl, score, restart=False):
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
     screen.blit(text, (text_x, text_y))
+    render_counters()
     pygame.display.flip()
     sleep(3.17)
     ex.update()
@@ -1410,6 +1479,7 @@ def make_game(lvl, score, restart=False):
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
     screen.blit(text, (text_x, text_y))
+    render_counters()
     pygame.display.flip()
     sleep(0.266)
     ex.update()
@@ -1418,6 +1488,7 @@ def make_game(lvl, score, restart=False):
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
     screen.blit(text, (text_x, text_y))
+    render_counters()
     pygame.display.flip()
     sleep(0.266)
     ex.update()
@@ -1426,6 +1497,7 @@ def make_game(lvl, score, restart=False):
     text_x = size[0] // 2 - text.get_width() // 2
     text_y = size[1] // 2 - text.get_height() // 2 + 60
     screen.blit(text, (text_x, text_y))
+    render_counters()
     pygame.display.flip()
     sleep(0.4)
     pygame.mixer.Channel(1).set_volume(0.5)
@@ -1448,6 +1520,8 @@ def make_game(lvl, score, restart=False):
                     pacman.player_direction = (0, 1)
                 elif event.key == pygame.K_p:
                     paused = not paused
+                elif event.key == pygame.K_SPACE:
+                    totalpoints.eat_fruit()
 
         if global_frame % 4 == 0:
             frame += 1
@@ -1496,13 +1570,13 @@ def make_game(lvl, score, restart=False):
             elif sl == 5 and (raw[12], raw[16]) != (254, 1):
                 pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_5.wav'), 10000)
 
-            if clear_seconds >= 7 - level * 0.4375 and not pinky.in_the_game:
+            if clear_seconds >= 7 - level * 0.4375 and not pinky.in_the_game and not disarming:
                 pinky.path = iter([(0, -1)] * 3 + [(0.5, 0)])
                 pinky.in_the_game = True
-            if len(food) - len(points_sprite.sprites()) == (48 - 3 * level) and not inky.in_the_game:
+            if len(food) - len(points_sprite.sprites()) >= (48 - 3 * level) and not inky.in_the_game and not disarming:
                 inky.path = iter([(1, 0)] * 2 + [(0, -1)] * 3 + [(0.5, 0)])
                 inky.in_the_game = True
-            if len(food) - len(points_sprite.sprites()) == (80 - 5 * level) and not clyde.in_the_game:
+            if len(food) - len(points_sprite.sprites()) >= (80 - 5 * level) and not clyde.in_the_game and not disarming:
                 clyde.path = iter([(-1, 0)] * 1 + [(0, -1)] * 3 + [(0.5, 0)])
                 clyde.in_the_game = True
 
@@ -1547,6 +1621,7 @@ def make_game(lvl, score, restart=False):
             running = False
             win = True
             
+        render_counters()
         clock.tick(fps)
         pygame.display.flip()
         
@@ -1554,6 +1629,7 @@ def make_game(lvl, score, restart=False):
 
     if win:
         ex.update()
+        render_counters()
         pygame.display.flip()
         sleep(2)
 
@@ -1564,6 +1640,7 @@ def make_game(lvl, score, restart=False):
         text_x = size[0] // 2 - text.get_width() // 2
         text_y = size[1] // 2 - text.get_height() // 2 + 60
         screen.blit(text, (text_x, text_y))
+        render_counters()
         pygame.display.flip()
         sleep(3)
         ex.update()
@@ -1571,6 +1648,7 @@ def make_game(lvl, score, restart=False):
         make_game(level + 1, score)
     else:
         ex.update()
+        render_counters()
         pygame.display.flip()
         sleep(2)
         font = pygame.font.Font('data/PacMan Font.ttf', 25)
@@ -1578,13 +1656,14 @@ def make_game(lvl, score, restart=False):
         text_x = size[0] // 2 - text.get_width() // 2
         text_y = size[1] // 2 - text.get_height() // 2 + 60
         screen.blit(text, (text_x, text_y))
+        render_counters()
         pygame.display.flip()
         sleep(3)
         ex.update()
         
 
-
 if __name__ == '__main__':
+    totalpoints = TotalPoints()
     pacman, points_sprite, global_frame, level, blinky, seconds, disarming = 0, 0, 0, 0, 0, 0, 0
     pygame.mixer.init()
     font = pygame.font.Font('data/PacMan Font.ttf', 25)
@@ -1594,6 +1673,7 @@ if __name__ == '__main__':
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
+    render_counters()
     pygame.display.flip()
     while True:
         event = pygame.event.wait()
