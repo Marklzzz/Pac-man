@@ -810,6 +810,7 @@ class Ghost:
         self.x, self.y = x, y
         self.animation = [load_image('data/ghosts/blinky/right1.png')]
         self.rect = self.animation[0].get_rect()
+        self.mask = pygame.mask.from_surface(self.animation[0])
         self.rect.x = self.x
         self.rect.y = self.y
 
@@ -1307,6 +1308,7 @@ class TotalPoints:
         self.points = 0
         self.lifes = 3
         self.fruits = 0
+        self.last_ten_thousand = 0
         with open('scores.txt', 'r') as file:
             string = file.readline()
             if string:
@@ -1321,8 +1323,9 @@ class TotalPoints:
     
     def increase_points(self, num):
         self.points += num
-        if self.points % 10000 == 0:
+        if self.points // 10000 != self.last_ten_thousand:
             self.lifes += 1 if self.lifes < 5 else 0
+            self.last_ten_thousand = self.points // 10000
     
     def eat_fruit(self):
         if self.next_by_order == 'cherry':
@@ -1341,6 +1344,10 @@ class TotalPoints:
             self.points += 3000
         elif self.next_by_order == 'key':
             self.points += 5000
+            
+        if self.points // 10000 != self.last_ten_thousand:
+            self.lifes += 1 if self.lifes < 5 else 0
+            self.last_ten_thousand = self.points // 10000
         
         self.fruits += 1 if self.fruits < len(fruits_order) - 1 else 0
     
@@ -1438,9 +1445,9 @@ def render_counters():
         screen.blit(fimage, (26 * cell_size - 16 - 45 * i, 34 * cell_size))
 
 
-def make_game(lvl, score, restart=False):
+def make_game(lvl, restart=False):
     pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/game_start.wav'))
-    global screen, pacman, points_sprite, global_frame, blinky, level, seconds, disarming
+    global screen, pacman, points_sprite, global_frame, blinky, level, seconds, disarming, food
     fps = 60
     running, paused = True, False
     disarming, win = False, False
@@ -1448,15 +1455,16 @@ def make_game(lvl, score, restart=False):
     # данные на вывод
     level, seconds = lvl, 0
 
-    points_sprite = pygame.sprite.Group()
-    food = []
+    if not restart:
+        points_sprite = pygame.sprite.Group()
+        food = []
 
-    for line in nodes_matrix:
-        for cell in line:
-            if cell.has_food:
-                food.append(Point(cell.x * cell_size, cell.y * cell_size + 3 * cell_size))
-            elif cell.has_energy:
-                food.append(Energizer(cell.x * cell_size, cell.y * cell_size + 3 * cell_size))
+        for line in nodes_matrix:
+            for cell in line:
+                if cell.has_food:
+                    food.append(Point(cell.x * cell_size, cell.y * cell_size + 3 * cell_size))
+                elif cell.has_energy:
+                    food.append(Energizer(cell.x * cell_size, cell.y * cell_size + 3 * cell_size))
 
     pacman = Pac_man(cell_size * 14 - 11, cell_size * 26 - 11, (0, 0))
     blinky = Blinky(cell_size * 14 - 11, cell_size * 11 - 11 + 3 * cell_size)
@@ -1627,6 +1635,31 @@ def make_game(lvl, score, restart=False):
         if not points_sprite.sprites():
             running = False
             win = True
+        
+        for ghost in [blinky, pinky, inky, clyde]:
+            if pygame.sprite.collide_mask(pacman, ghost):
+                if not disarming:
+                    pygame.mixer.Channel(1).stop()
+                    sleep(1)
+                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/death.wav'), 1)
+                    for i in range(1, 11):
+                        screen.fill('#000000', (pacman.x, pacman.y, 45, 45))
+                        screen.blit(load_image('data/pacman/die{}.png'.format(i)), (pacman.x, pacman.y))
+                        render_counters()
+                        pygame.display.flip()
+                        sleep(0.1)
+                    screen.fill('#000000', (pacman.x, pacman.y, 45, 45))
+                    screen.blit(load_image('data/pacman/die11.png'), (pacman.x, pacman.y))
+                    render_counters()
+                    pygame.display.flip()
+                    sleep(0.9)
+                    
+                    totalpoints.lifes -= 1
+                    if totalpoints.lifes > 0:
+                        make_game(level, restart=True)
+                    else:
+                        win, running = False, False
+            
             
         render_counters()
         clock.tick(fps)
@@ -1640,8 +1673,11 @@ def make_game(lvl, score, restart=False):
         pygame.display.flip()
         sleep(2)
 
-        phrases = ['GOOD   BOY!', 'PERFECT!', 'FANTASTIC!', 'WOW!  GREAT!', 'EXCELLENT!']
-
+        if level != 16:
+            phrases = ['GOOD   BOY!', 'PERFECT!', 'FANTASTIC!', 'WOW!  GREAT!', 'EXCELLENT!']
+        else:
+            phrases = ['YOU   WIN!']
+        
         font = pygame.font.Font('data/PacMan Font.ttf', 25)
         text = font.render(random.choice(phrases), True, '#ffff00')
         text_x = size[0] // 2 - text.get_width() // 2
@@ -1657,7 +1693,8 @@ def make_game(lvl, score, restart=False):
                     file.write(', ' + str(totalpoints.points))
                 else:
                     file.write(str(totalpoints.points))
-        make_game(level + 1, score)
+        if level != 16:
+            make_game(level + 1)
     else:
         ex.update()
         render_counters()
@@ -1678,18 +1715,54 @@ def make_game(lvl, score, restart=False):
                     file.write(', ' + str(totalpoints.points))
                 else:
                     file.write(str(totalpoints.points))
+        exit()
         
 
 if __name__ == '__main__':
     totalpoints = TotalPoints()
-    pacman, points_sprite, global_frame, level, blinky, seconds, disarming = 0, 0, 0, 0, 0, 0, 0
+    pacman, points_sprite, global_frame, level, blinky, seconds, disarming, food = 0, 0, 0, 0, 0, 0, 0, 0
     pygame.mixer.init()
 
     font = pygame.font.Font('data/PacMan Font.ttf', 45)
-    text = font.render("PAC-MAN", True, '#FDD700')
+    text = font.render("PAC- MAN", True, '#fdd700')
     screen.blit(text, ((size[0] - text.get_width()) // 2, 250))
 
-    font = pygame.font.Font('data/PacMan Font.ttf', 15)
+    font = pygame.font.Font('data/PacMan Font.ttf', 15)    
+    text = font.render("WASD   OR   ARROW   KEYS   TO   CONTROL", True, '#b69200')
+    text_x = (size[0] - text.get_width()) // 2
+    text_y = (size[1] - text.get_height()) // 2 + 95
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    
+    text = font.render("P  -  PAUSE", True, '#b69200')
+    text_x = (size[0] - text.get_width()) // 2
+    text_y = (size[1] - text.get_height()) // 2 + 120
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    
+    text = font.render("SMALL   POINT   -   10 PTS", True, '#b69200')
+    text_x = (size[0] - text.get_width()) // 2
+    text_y = (size[1] - text.get_height()) // 2 + 170
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    
+    text = font.render("ENERGIZER   -   50 PTS", True, '#b69200')
+    text_x = (size[0] - text.get_width()) // 2
+    text_y = (size[1] - text.get_height()) // 2 + 195
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    
+    text = font.render("BOUNS   PAC- MAN   FOR   10000 PTS", True, '#b69200')
+    text_x = (size[0] - text.get_width()) // 2
+    text_y = (size[1] - text.get_height()) // 2 + 220
+    text_w = text.get_width()
+    text_h = text.get_height()
+    screen.blit(text, (text_x, text_y))
+    
     text = font.render("BY   PAVEL   OVCHINNIKOV", True, '#00c800')
     text_x = (size[0] - text.get_width()) // 2
     text_y = (size[1] - text.get_height()) // 2 + 300
@@ -1710,6 +1783,15 @@ if __name__ == '__main__':
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
+    
+    text = font.render("ALL   RIGHTS   RESERVED   BY", True, '#fdd700')
+    text_w = text.get_width()
+    text_h = text.get_height()
+    text_x = size[0] - text_w - 126
+    text_y = size[1] - text_h - 8
+    screen.blit(text, (text_x, text_y))
+    logo_namco = load_image('data/Namco logo and colors.png', size=(106, 17))
+    screen.blit(logo_namco, (size[0] - 114, size[1] - 10 - text_h))
 
     font = pygame.font.Font('data/PacMan Font.ttf', 25)
     text = font.render("TAP  TO   PLAY", True, '#ffcc00')
@@ -1727,6 +1809,7 @@ if __name__ == '__main__':
     animation_frame = 0
     running = True
     cycle = [1, 2, 3, 2] * 10000
+    
     while running:
         screen.fill((0, 0, 0), (272, 100, 128, 128))
         global_frame += 1
@@ -1755,7 +1838,7 @@ if __name__ == '__main__':
         screen.blit(load_image('data/other/logo{}.png'.format(cycle[global_frame // 10]), size=(128, 128)), (272, 100))
         clock.tick(60)
         pygame.display.flip()
-    make_game(1, 0)
+    make_game(1)
 
 
 pygame.quit()
