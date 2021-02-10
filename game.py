@@ -1309,7 +1309,7 @@ class TotalPoints:
     def __init__(self):
         self.points = 0
         self.lifes = 3
-        self.fruits = 1
+        self.fruits = 0
     
     def increase_points(self, num):
         self.points += num
