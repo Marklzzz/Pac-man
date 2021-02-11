@@ -1323,9 +1323,14 @@ class TotalPoints:
     
     def increase_points(self, num):
         self.points += num
+        self.increase_lifes()
+    
+    def increase_lifes(self, cheat=False):
         if self.points // 10000 != self.last_ten_thousand:
             self.lifes += 1 if self.lifes < 5 else 0
             self.last_ten_thousand = self.points // 10000
+        elif cheat:
+            self.lifes += 1 if self.lifes < 5 else 0
     
     def eat_fruit(self):
         if self.next_by_order == 'cherry':
@@ -1345,9 +1350,7 @@ class TotalPoints:
         elif self.next_by_order == 'key':
             self.points += 5000
             
-        if self.points // 10000 != self.last_ten_thousand:
-            self.lifes += 1 if self.lifes < 5 else 0
-            self.last_ten_thousand = self.points // 10000
+        self.increase_lifes()
         
         self.fruits += 1 if self.fruits < len(fruits_order) - 1 else 0
     
@@ -1411,14 +1414,10 @@ class Energizer(Object, pygame.sprite.Sprite):
 
 
 class Fruit(Object, pygame.sprite.Sprite):
-    global totalpoints
-    fruits = totalpoints.show_fruit()[0]
-    for i in range(len(fruits)):
-        image = load_image('data/fruits/{}.png'.format(fruits[i]), (int(1.5 * cell_size), int(1.5 * cell_size)))
-
     def __init__(self, x, y):
         super().__init__(x, y)
-        self.image = Fruit.image
+        fruit = totalpoints.show_fruit()[1]
+        self.image = load_image('data/fruits/{}.png'.format(fruit))
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
         self.rect.x = x
@@ -1430,7 +1429,6 @@ class Fruit(Object, pygame.sprite.Sprite):
             self.eaten = True
             points_sprite.remove(self)
             totalpoints.eat_fruit()
-            totalpoints.increase_points(100)
 
 
 def render_counters():
@@ -1453,6 +1451,14 @@ def render_counters():
     text_x, text_y = 264, 24
     screen.blit(text, (text_x, text_y))
     
+    screen.fill('#000000', (605, 0, 48, 48))    
+    if play_sound:
+        sound_image = load_image('data/other/volume_on.png', size=(48, 48))
+    else:
+        sound_image = load_image('data/other/volume_off.png', size=(48, 48))
+    screen.blit(sound_image, (size[0] - 67, 0))
+     
+    
     life = load_image('data/other/life.png')
     for i in range(totalpoints.lifes - 1):
         screen.blit(life, (16 + 45 * i, 34 * cell_size))
@@ -1463,8 +1469,10 @@ def render_counters():
         screen.blit(fimage, (26 * cell_size - 16 - 45 * i, 34 * cell_size))
 
 def make_game(lvl, restart=False):
-    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/game_start.wav'))
-    global screen, pacman, points_sprite, global_frame, blinky, level, seconds, disarming, food
+    global screen, pacman, points_sprite, global_frame, blinky, level, seconds, disarming, food, play_sound
+    
+    if play_sound:
+        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/game_start.wav'))
     fps = 60
     running, paused = True, False
     disarming, win = False, False
@@ -1488,6 +1496,7 @@ def make_game(lvl, restart=False):
     pinky = Pinky(cell_size * 13.5 - 11, cell_size * 13 - 11 + 3 * cell_size)
     inky = Inky(cell_size * 11.5 - 11, cell_size * 15 - 11 + 3 * cell_size)
     clyde = Clyde(cell_size * 15.5 - 11, cell_size * 15 - 11 + 3 * cell_size)
+    
     points_sprite.draw(screen)
 
     clock = pygame.time.Clock()
@@ -1504,7 +1513,7 @@ def make_game(lvl, restart=False):
     screen.blit(text, (text_x, text_y))
     render_counters()
     pygame.display.flip()
-    sleep(3.17)
+    sleep(3.17 if play_sound else 1.5)
     ex.update()
 
     text = font.render("READY!", True, '#ffcc00')
@@ -1532,14 +1541,18 @@ def make_game(lvl, restart=False):
     render_counters()
     pygame.display.flip()
     sleep(0.4)
-    pygame.mixer.Channel(1).set_volume(0.5)
+    
     pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_1.wav'), 10000)
+    pygame.mixer.Channel(1).set_volume(0.5 if play_sound else 0)
 
     while running:
         ex.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
+                
+            if event.type == pygame.MOUSEBUTTONDOWN and 600 <= event.pos[0] <= 658 and 0 <= event.pos[1] <= 53:
+                play_sound = not play_sound
 
             if event.type == pygame.KEYDOWN:
                 if event.key in [pygame.K_LEFT, pygame.K_a]:
@@ -1552,23 +1565,33 @@ def make_game(lvl, restart=False):
                     pacman.player_direction = (0, 1)
                 elif event.key == pygame.K_p:
                     paused = not paused
-                    pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
-                elif event.key == pygame.K_SPACE:
-                    food.append(Fruit(cell_size * 14 - 11, cell_size * 26 - 11))
+                    if play_sound:
+                        pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
+                elif event.key == pygame.K_m:
+                    play_sound = not play_sound
+                    
         if global_frame % 4 == 0:
             frame += 1
             
         points_sprite.draw(screen)
-
-        if len(points_sprite) == 174 or len(points_sprite) == 74:
-            food.append(Fruit(cell_size * 14 - 11, cell_size * 26 - 11))
+        if (len(points_sprite) == 174 or len(points_sprite) == 74) and not isinstance(food[-1], Fruit):
+            food.append(Fruit(cell_size * 13.5 - 11, cell_size * 20 - 11))
+            
         
         for f in food:
+            flag = False
             if pygame.sprite.collide_mask(f, pacman) and not f.eaten and (global_frame - sound_frame) > 15:
-                pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/wakka.wav'))
+                if isinstance(f, Fruit):
+                    flag = True
+                    if play_sound:
+                        pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/eat_fruit.wav'))
+                elif play_sound:
+                    pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/wakka.wav'))
                 pygame.mixer.Channel(0).set_volume(0.8)
                 sound_frame = global_frame
             f.update([blinky, pinky, inky, clyde])
+            if flag:
+                del food[-1]
         
         screen.blit(pacman.animation[pacman.direction][pacman.frame % 3], (pacman.x, pacman.y))
         screen.blit(blinky.animation[frame % 2], (blinky.x, blinky.y))
@@ -1577,7 +1600,7 @@ def make_game(lvl, restart=False):
         screen.blit(clyde.animation[frame % 2], (clyde.x, clyde.y))
         
         if not paused:
-            pygame.mixer.Channel(1).set_volume(0.5)
+            pygame.mixer.Channel(1).set_volume(0.5 if play_sound else 0)
             global_frame += 1
             clear_frame += 1 if not disarming else 0
             seconds = global_frame / fps
@@ -1593,17 +1616,18 @@ def make_game(lvl, restart=False):
             clyde.move()
             
             sl = (len(food) - len(points_sprite.sprites())) // 49 + 1 if not disarming else -1
-            raw = pygame.mixer.Channel(1).get_sound().get_raw()
-            if disarming and (raw[12], raw[16]) != (254, 2):
-                pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/active_energy.wav'), 10000)
-            if sl == 2 and (raw[12], raw[16]) != (0, 0):
-                pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_2.wav'), 10000)
-            elif sl == 3 and (raw[12], raw[16]) != (253, 4):
-                pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_3.wav'), 10000)
-            elif sl == 4 and (raw[12], raw[16]) != (255, 2):
-                pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_4.wav'), 10000)
-            elif sl == 5 and (raw[12], raw[16]) != (254, 1):
-                pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_5.wav'), 10000)
+            if play_sound:
+                raw = pygame.mixer.Channel(1).get_sound().get_raw()
+                if disarming and (raw[12], raw[16]) != (254, 2):
+                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/active_energy.wav'), 10000)
+                if sl == 2 and (raw[12], raw[16]) != (0, 0):
+                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_2.wav'), 10000)
+                elif sl == 3 and (raw[12], raw[16]) != (253, 4):
+                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_3.wav'), 10000)
+                elif sl == 4 and (raw[12], raw[16]) != (255, 2):
+                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_4.wav'), 10000)
+                elif sl == 5 and (raw[12], raw[16]) != (254, 1):
+                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_5.wav'), 10000)
 
             if clear_seconds >= 7 - level * 0.4375 and not pinky.in_the_game and not disarming:
                 pinky.path = iter([(0, -1)] * 3 + [(0.5, 0)])
@@ -1661,7 +1685,8 @@ def make_game(lvl, restart=False):
                 if not disarming:
                     pygame.mixer.Channel(1).stop()
                     sleep(1)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/death.wav'), 1)
+                    if play_sound:
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/death.wav'), 1)
                     for i in range(1, 11):
                         screen.fill('#000000', (pacman.x, pacman.y, 45, 45))
                         screen.blit(load_image('data/pacman/die{}.png'.format(i)), (pacman.x, pacman.y))
@@ -1741,6 +1766,7 @@ def make_game(lvl, restart=False):
 if __name__ == '__main__':
     totalpoints = TotalPoints()
     pacman, points_sprite, global_frame, level, blinky, seconds, disarming, food = 0, 0, 0, 0, 0, 0, 0, 0
+    play_sound = True
     pygame.mixer.init()
 
     font = pygame.font.Font('data/PacMan Font.ttf', 45)
@@ -1755,28 +1781,28 @@ if __name__ == '__main__':
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     
-    text = font.render("P  -  PAUSE", True, '#b69200')
+    text = font.render("P  -  PAUSE          M  -  MUTE/UNMUTE", True, '#b69200')
     text_x = (size[0] - text.get_width()) // 2
     text_y = (size[1] - text.get_height()) // 2 + 120
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     
-    text = font.render("SMALL   POINT   -   10 PTS", True, '#b69200')
+    text = font.render("SMALL   POINT   -   10PTS", True, '#b69200')
     text_x = (size[0] - text.get_width()) // 2
     text_y = (size[1] - text.get_height()) // 2 + 170
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     
-    text = font.render("ENERGIZER   -   50 PTS", True, '#b69200')
+    text = font.render("ENERGIZER   -   50PTS", True, '#b69200')
     text_x = (size[0] - text.get_width()) // 2
     text_y = (size[1] - text.get_height()) // 2 + 195
     text_w = text.get_width()
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     
-    text = font.render("BONUS   PAC- MAN   FOR   10000 PTS", True, '#b69200')
+    text = font.render("BONUS   PAC- MAN   FOR   10000PTS", True, '#b69200')
     text_x = (size[0] - text.get_width()) // 2
     text_y = (size[1] - text.get_height()) // 2 + 220
     text_w = text.get_width()
@@ -1807,11 +1833,11 @@ if __name__ == '__main__':
     text = font.render("ALL   RIGHTS   RESERVED   BY", True, '#fdd700')
     text_w = text.get_width()
     text_h = text.get_height()
-    text_x = size[0] - text_w - 126
+    text_x = size[0] - text_w - 142
     text_y = size[1] - text_h - 8
     screen.blit(text, (text_x, text_y))
     logo_namco = load_image('data/Namco logo and colors.png', size=(106, 17))
-    screen.blit(logo_namco, (size[0] - 114, size[1] - 10 - text_h))
+    screen.blit(logo_namco, (size[0] - 130, size[1] - 10 - text_h))
 
     font = pygame.font.Font('data/PacMan Font.ttf', 25)
     text = font.render("TAP  TO   PLAY", True, '#ffcc00')
@@ -1824,6 +1850,7 @@ if __name__ == '__main__':
     render_counters()
     pygame.display.flip()
     pygame.display.set_caption('PAC-MAN')
+    pygame.display.set_icon(pygame.image.load("data/other/favicon.ico"))
     
     clock = pygame.time.Clock()
     animation_frame = 0
@@ -1836,12 +1863,20 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
+                
+            if (
+                event.type == pygame.KEYDOWN and event.key == pygame.K_m or
+                event.type == pygame.MOUSEBUTTONDOWN and 600 <= event.pos[0] <= 658 and 0 <= event.pos[1] <= 53
+            ):
+                play_sound = not play_sound
+                
             if (
                 event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE or
                 event.type == pygame.MOUSEBUTTONDOWN and 
                 -5 <= event.pos[0] - text_x <= text_w + 5 and -5 <= event.pos[1] - text_y <= text_h + 5
             ):
-                pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
+                if play_sound:
+                    pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/any_button.wav'))
                 font = pygame.font.Font('data/PacMan Font.ttf', 25)
                 text = font.render("TAP  TO   PLAY", True, '#b69200')
                 text_x = size[0] // 2 - text.get_width() // 2
@@ -1855,6 +1890,7 @@ if __name__ == '__main__':
                 pygame.display.flip()
                 sleep(0.5)
                 running = False
+        render_counters()
         screen.blit(load_image('data/other/logo{}.png'.format(cycle[global_frame // 10]), size=(128, 128)), (272, 100))
         clock.tick(60)
         pygame.display.flip()
