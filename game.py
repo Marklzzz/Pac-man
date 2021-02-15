@@ -1318,10 +1318,7 @@ class TotalPoints:
         with open('scores.txt', 'r') as file:
             string = file.readline()
             if string:
-                if ',' in string:
-                    scores = list(map(int, string.split(', ')))
-                else:
-                    scores = [int(string)]
+                scores = list(map(int, string.split(', ')))
             else:
                 scores = [0]
         scores = sorted(scores)[::-1]
@@ -1588,8 +1585,6 @@ def make_game(lvl, restart=False):
             f.update([blinky, pinky, inky, clyde])
             if flag:
                 del food[-1]
-                
-        screen.blit(pacman.animation[pacman.direction][pacman.frame % 4], (pacman.x, pacman.y))
         
         if not paused:
             pygame.mixer.Channel(1).set_volume(0.5 if play_sound else 0)
@@ -1698,6 +1693,8 @@ def make_game(lvl, restart=False):
         else:
             for ghost in blinky, pinky, inky, clyde:
                 screen.blit(ghost.animation[frame % 2], (ghost.x, ghost.y))
+        
+        screen.blit(pacman.animation[pacman.direction][pacman.frame % 4], (pacman.x, pacman.y))
             
         render_counters()
         clock.tick(fps)
@@ -1715,6 +1712,10 @@ def make_game(lvl, restart=False):
             phrases = ['GOOD   BOY!', 'PERFECT!', 'FANTASTIC!', 'WOW!  GREAT!', 'EXCELLENT!']
         else:
             phrases = ['YOU   WIN!']
+            with open('scores.txt', 'a+') as file:
+                file.seek(0)
+                scores = file.readline()
+                file.write(', ' + str(totalpoints.points) if scores else str(totalpoints.points))
         
         font = pygame.font.Font('data/PacMan Font.ttf', 25)
         text = font.render(random.choice(phrases), True, '#ffff00')
@@ -1725,12 +1726,6 @@ def make_game(lvl, restart=False):
         pygame.display.flip()
         pygame.time.wait(2200)
         ex.update()
-        with open('scores.txt', 'a') as file:
-            with open('scores.txt', 'r') as test_file:
-                if test_file.readlines():
-                    file.write(', ' + str(totalpoints.points))
-                else:
-                    file.write(str(totalpoints.points))
         if level != 16:
             make_game(level + 1)
     else:
@@ -1745,12 +1740,10 @@ def make_game(lvl, restart=False):
         pygame.display.flip()
         pygame.time.wait(2200)
         ex.update()
-        with open('scores.txt', 'a') as file:
-            with open('scores.txt', 'r') as test_file:
-                if test_file.readlines():
-                    file.write(', ' + str(totalpoints.points))
-                else:
-                    file.write(str(totalpoints.points))
+        with open('scores.txt', 'a+') as file:
+            file.seek(0)
+            scores = file.readline()
+            file.write(', ' + str(totalpoints.points) if scores else str(totalpoints.points))
         exit()
         
 
