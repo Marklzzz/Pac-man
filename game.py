@@ -1498,10 +1498,12 @@ def make_game(lvl, restart=False):
         del food[-1]
 
     pacman = Pac_man(cell_size * 14 - 11, cell_size * 26 - 11, (0, 0))
+    #* Закомментируй это, если нужно убрать призраков
     blinky = Blinky(cell_size * 14 - 11, cell_size * 11 - 11 + 3 * cell_size)
     pinky = Pinky(cell_size * 13.5 - 11, cell_size * 13 - 11 + 3 * cell_size)
     inky = Inky(cell_size * 11.5 - 11, cell_size * 15 - 11 + 3 * cell_size)
     clyde = Clyde(cell_size * 15.5 - 11, cell_size * 15 - 11 + 3 * cell_size)
+    #* Закомментируй это, если нужно убрать призраков
     
     points_sprite.draw(screen)
 
@@ -1575,14 +1577,15 @@ def make_game(lvl, restart=False):
             if pygame.sprite.collide_mask(f, pacman) and not f.eaten and (global_frame - sound_frame) > 15:
                 if isinstance(f, Fruit):
                     flag = True
-                    
                     if play_sound:
                         pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/eat_fruit.wav'))
                 elif play_sound:
                     pygame.mixer.Channel(0).play(pygame.mixer.Sound('sounds/wakka.wav'))
                 pygame.mixer.Channel(0).set_volume(0.8)
                 sound_frame = global_frame
+            #* Закомментируй это, если нужно убрать призраков
             f.update([blinky, pinky, inky, clyde])
+            #* Закомментируй это, если нужно убрать призраков
             if flag:
                 del food[-1]
         
@@ -1596,9 +1599,11 @@ def make_game(lvl, restart=False):
                 pacman.move()
             pacman.frames()
             
+            #* Закомментируй это, если нужно убрать призраков
             blinky.move('agressive' if len(points_sprite.sprites()) <= 20 + level * 14 else 'normal')
             for ghost in pinky, inky, clyde:
                     ghost.move()
+            #* Закомментируй это, если нужно убрать призраков
                     
             sl = (len(food) - len(points_sprite.sprites())) // 49 + 1 if not disarming else -1
             if play_sound:
@@ -1614,6 +1619,7 @@ def make_game(lvl, restart=False):
                 elif sl == 5 and (raw[12], raw[16]) != (254, 1):
                     pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_5.wav'), 10000)
 
+            #* Закомментируй это, если нужно убрать призраков
             if clear_seconds >= 7 - level * 0.4375 and not pinky.in_the_game and not disarming:
                 pinky.path = iter([(0, -1)] * 3 + [(0.5, 0)])
                 pinky.in_the_game = True
@@ -1645,6 +1651,7 @@ def make_game(lvl, restart=False):
             if clear_seconds == 84 + 4 * (level >= 4) + 4 * (level >= 10):
                 for ghost in (blinky, pinky, inky, clyde):
                     ghost.scatter = False
+            #* Закомментируй это, если нужно убрать призраков
         else:
             pygame.mixer.Channel(1).set_volume(0)
             blured = pygame.transform.smoothscale(screen, (63, 81))
@@ -1662,8 +1669,8 @@ def make_game(lvl, restart=False):
         if not points_sprite.sprites():
             running = False
             win = True
-        
-        collides = any((pygame.sprite.collide_mask(pacman, ghost) for ghost in (blinky, pinky, inky, clyde)))
+        #* Подставь пустой список, если нужно убрать призраков
+        collides = any((pygame.sprite.collide_mask(pacman, ghost) for ghost in [blinky, pinky, inky, clyde]))
         if collides:
             if not disarming:
                 pygame.mixer.Channel(1).stop()
@@ -1687,12 +1694,16 @@ def make_game(lvl, restart=False):
                     make_game(level, restart=True)
                 else:
                     win, running = False, False
+        #* Закомментируй это, если нужно убрать призраков
             else:
+                #todo: Вот здесь нужно сделать поедание призраков
+                
                 for ghost in blinky, pinky, inky, clyde:
                     screen.blit(ghost.animation[frame % 2], (ghost.x, ghost.y))
         else:
             for ghost in blinky, pinky, inky, clyde:
                 screen.blit(ghost.animation[frame % 2], (ghost.x, ghost.y))
+        #* Закомментируй это, если нужно убрать призраков
         
         screen.blit(pacman.animation[pacman.direction][pacman.frame % 4], (pacman.x, pacman.y))
             
