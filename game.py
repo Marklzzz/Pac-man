@@ -1264,7 +1264,7 @@ class Pac_man:
             if self.wall_check(self.player_direction):
                 self.direction = self.player_direction
             if self.direction != (0, 0) and self.wall_check(self.direction):
-                self.counter = 8
+                self.counter = 24
 
         if self.wall_check(self.direction) and self.direction != (0, 0):
             if self.direction == (-1, 0) or self.direction == (0, -1):
