@@ -820,19 +820,21 @@ class Ghost:
 
         self.angry = False
         self.scatter = True
+        self.run = False
         self.in_the_game = False
+        self.disarming = False
 
     def update_time(self):
         self.last_seconds = seconds
 
     def pave(self, end=None):
         global disarming
-        coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
-        coord_x = int((self.x + 11) // cell_size)
+        coord_y = int((self.y + 12 - 3 * cell_size) // cell_size)
+        coord_x = int((self.x + 12) // cell_size)
         try:
             if self.counter == 0:
                 if not self.scatter and (
-                    not self.path or ((coord_x, coord_y) in important_points and not disarming)
+                    not self.path or ((coord_x, coord_y) in important_points and not self.disarming)
                 ):
                     if (int((end[1] + 11 - 3 * cell_size) // cell_size) < 0 or 
                             int((end[0] + 11) // cell_size) < 0):
@@ -844,9 +846,14 @@ class Ghost:
                     if pre_path:
                         self.path = iter(pre_path)
                 self.direction = next(self.path)
-                in_the_passage = (coord_y == 14 and coord_x in [0, 1, 2, 3, 4, 5, 22, 23, 24, 25, 26, 27])
-                self.counter = (8 if self.angry else 12) if not disarming and not in_the_passage else 16
-                self.speed = (3 if self.angry else 2) if not disarming and not in_the_passage else 1.5
+                in_the_passage = (coord_y == 14 and (coord_x <= 5 or coord_x >= 22))
+                self.counter = (8 if self.angry else 12) if not self.disarming and not in_the_passage else 16
+                self.speed = (3 if self.angry else 2) if not self.disarming and not in_the_passage else 1.5
+                
+                if self.run:
+                    self.counter, self.speed = 3, 8
+                    self.path = iter(find_path(nodes_matrix[coord_y][coord_x], nodes_matrix[14][13]))
+                    self.direction = next(self.path)
             self.x = round(self.x + self.direction[0] * self.speed, 1)
             self.y = round(self.y + self.direction[1] * self.speed, 1)
             self.rect.x = self.x
@@ -854,6 +861,8 @@ class Ghost:
             self.counter -= 1
         except StopIteration:
             self.path = None
+            if self.run and (coord_x, coord_y) == (13, 14):
+                self.run, self.disarming = False, False
         except TypeError:
             self.path = None
         except IndexError:
@@ -865,8 +874,19 @@ class Ghost:
                     self.pave((path_x, path_y))
                 else:
                     self.pave((pacman.x, pacman.y))
-
-        if disarming:
+                    
+        if self.run:
+            if self.direction in [(0.5, 0), (1, 0)]:
+                side = 'right'
+            elif self.direction in [(-0.5, 0), (-1, 0)]:
+                side = 'left'
+            elif self.direction == (0, 1):
+                side = 'down'
+            elif self.direction == (0, -1):
+                side = 'up'
+            self.animation = [load_image('data/ghosts/killing/died-{}.png'.format(side)),
+                              load_image('data/ghosts/killing/died-{}.png'.format(side))]
+        elif self.disarming:
             if self.last_seconds == 0:
                 self.update_time()
 
@@ -874,6 +894,7 @@ class Ghost:
             time_shift = round(up_time - (seconds - self.last_seconds), 2)
             if time_shift == 0:
                 disarming = False
+                self.disarming = False
                 self.last_seconds = 0
             elif time_shift in [3.3, 2.65, 1.98, 1.32, 0.65]:
                 self.animation = [load_image('data/ghosts/killing/end-disarmed1.png'),
@@ -901,8 +922,8 @@ class Blinky(Ghost):
 
         coord_x = int((self.x + 11) // cell_size)
         coord_y = int((self.y + 11 - 3 * cell_size) // cell_size)
-        
-        if disarming and not self.path:
+
+        if self.disarming and not self.path:
             diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
             if 1 <= diff_x <= 48 and 1 <= diff_y <= 48:
                 super().pave((self.x - diff_x, self.y - diff_y))
@@ -951,19 +972,20 @@ class Blinky(Ghost):
         else:
             super().pave()
             
-        if self.direction == (1, 0):
+        if self.direction in [(0.5, 0), (1, 0)]:
             side = 'right'
-        elif self.direction == (-1, 0):
+        elif self.direction in [(-0.5, 0), (-1, 0)]:
             side = 'left'
         elif self.direction == (0, 1):
             side = 'down'
         elif self.direction == (0, -1):
             side = 'up'
 
-        if not disarming:
+        if not self.disarming and not self.run:
             angry = 'angry_' if self.angry else ''
             self.animation = [load_image('data/ghosts/blinky/{}{}1.png'.format(angry, side)),
                               load_image('data/ghosts/blinky/{}{}2.png'.format(angry, side))]
+            
 
 
 class Pinky(Ghost):
@@ -982,7 +1004,7 @@ class Pinky(Ghost):
         if not self.in_the_game and not self.path:
             self.path = iter([(0, 1), (0, 1), (0, -1), (0, -1)])
             super().pave()
-        elif disarming and not self.path:
+        elif self.disarming and not self.path:
             diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
             if 1 <= diff_x <= 48 and 1 <= diff_y <= 48:
                 super().pave((self.x - diff_x, self.y - diff_y))
@@ -1032,16 +1054,16 @@ class Pinky(Ghost):
         else:
             super().pave()
 
-        if self.direction == (1, 0):
+        if self.direction in [(0.5, 0), (1, 0)]:
             self.side = 'right'
-        elif self.direction == (-1, 0):
+        elif self.direction in [(-0.5, 0), (-1, 0)]:
             self.side = 'left'
         elif self.direction == (0, 1):
             self.side = 'down'
         elif self.direction == (0, -1):
             self.side = 'up'
 
-        if not disarming:
+        if not self.disarming and not self.run:
             self.animation = [load_image('data/ghosts/pinky/{}1.png'.format(self.side)),
                               load_image('data/ghosts/pinky/{}2.png'.format(self.side))]
 
@@ -1062,7 +1084,7 @@ class Inky(Ghost):
         if not self.in_the_game and not self.path:
             self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)])
             super().pave()
-        elif disarming and not self.path:
+        elif self.disarming and not self.path:
             diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
             if 1 <= diff_x <= 48 and 1 <= diff_y <= 48:
                 super().pave((self.x - diff_x, self.y - diff_y))
@@ -1113,16 +1135,16 @@ class Inky(Ghost):
         else:
             super().pave()
 
-        if self.direction == (1, 0):
+        if self.direction in [(0.5, 0), (1, 0)]:
             self.side = 'right'
-        elif self.direction == (-1, 0):
+        elif self.direction in [(-0.5, 0), (-1, 0)]:
             self.side = 'left'
         elif self.direction == (0, 1):
             self.side = 'down'
         elif self.direction == (0, -1):
             self.side = 'up'
 
-        if not disarming:
+        if not self.disarming and not self.run:
             self.animation = [load_image('data/ghosts/inky/{}1.png'.format(self.side)),
                               load_image('data/ghosts/inky/{}2.png'.format(self.side))]
 
@@ -1151,7 +1173,7 @@ class Clyde(Ghost):
         if not self.in_the_game and not self.path:
             self.path = iter([(0, -1), (0, -1), (0, 1), (0, 1)])
             super().pave()
-        elif disarming and not self.path:
+        elif self.disarming and not self.path:
             diff_x, diff_y = pacman.x - self.x, pacman.y - self.y
             if 1 <= diff_x <= 48 and 1 <= diff_y <= 48:
                 super().pave((self.x - diff_x, self.y - diff_y))
@@ -1207,16 +1229,16 @@ class Clyde(Ghost):
         else:
             super().pave()
 
-        if self.direction == (1, 0):
+        if self.direction in [(0.5, 0), (1, 0)]:
             self.side = 'right'
-        elif self.direction == (-1, 0):
+        elif self.direction in [(-0.5, 0), (-1, 0)]:
             self.side = 'left'
         elif self.direction == (0, 1):
             self.side = 'down'
         elif self.direction == (0, -1):
             self.side = 'up'
 
-        if not disarming:
+        if not self.disarming and not self.run:
             self.animation = [load_image('data/ghosts/clyde/{}1.png'.format(self.side)),
                               load_image('data/ghosts/clyde/{}2.png'.format(self.side))]
 
@@ -1412,6 +1434,7 @@ class Energizer(Object, pygame.sprite.Sprite):
                 g.update_time()
                 if g.in_the_game:
                     g.path = None
+                g.disarming = True
             disarming = True
             super().update()
 
@@ -1602,7 +1625,12 @@ def make_game(lvl, restart=False):
             #* Закомментируй это, если нужно убрать призраков
             blinky.move('agressive' if len(points_sprite.sprites()) <= 20 + level * 14 else 'normal')
             for ghost in pinky, inky, clyde:
-                    ghost.move()
+                ghost.move()
+            
+            not_equal_disarming = all([g.disarming != disarming for g in (blinky, pinky, inky, clyde)])
+            for ghost in blinky, pinky, inky, clyde:
+                if not_equal_disarming:
+                    ghost.disarming = disarming
             #* Закомментируй это, если нужно убрать призраков
                     
             sl = (len(food) - len(points_sprite.sprites())) // 49 + 1 if not disarming else -1
@@ -1670,39 +1698,50 @@ def make_game(lvl, restart=False):
             running = False
             win = True
         #* Подставь пустой список, если нужно убрать призраков
-        collides = any((pygame.sprite.collide_mask(pacman, ghost) for ghost in [blinky, pinky, inky, clyde]))
-        if collides:
-            if not disarming:
-                pygame.mixer.Channel(1).stop()
-                pygame.time.wait(1000)
-                if play_sound:
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/death.wav'), 1)
-                for i in range(1, 11):
+        if global_frame % 6 == 0:
+            for ghost in blinky, pinky, inky, clyde:
+                if not ghost.disarming and pygame.sprite.collide_mask(pacman, ghost):
+                    pygame.mixer.Channel(1).stop()
+                    pygame.time.wait(1000)
+                    if play_sound:
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/death.wav'), 1)
+                    for i in range(1, 11):
+                        screen.fill('#000000', (pacman.x, pacman.y, 45, 45))
+                        screen.blit(load_image('data/pacman/die{}.png'.format(i)), (pacman.x, pacman.y))
+                        render_counters()
+                        pygame.display.flip()
+                        pygame.time.wait(100)
                     screen.fill('#000000', (pacman.x, pacman.y, 45, 45))
-                    screen.blit(load_image('data/pacman/die{}.png'.format(i)), (pacman.x, pacman.y))
+                    screen.blit(load_image('data/pacman/die11.png'), (pacman.x, pacman.y))
                     render_counters()
                     pygame.display.flip()
-                    pygame.time.wait(100)
-                screen.fill('#000000', (pacman.x, pacman.y, 45, 45))
-                screen.blit(load_image('data/pacman/die11.png'), (pacman.x, pacman.y))
-                render_counters()
-                pygame.display.flip()
-                pygame.time.wait(900)
-                
-                totalpoints.lifes -= 1
-                if totalpoints.lifes > 0:
-                    make_game(level, restart=True)
-                else:
-                    win, running = False, False
+                    pygame.time.wait(900)
+                    
+                    totalpoints.lifes -= 1
+                    if totalpoints.lifes > 0:
+                        make_game(level, restart=True)
+                    else:
+                        win, running = False, False
         #* Закомментируй это, если нужно убрать призраков
-            else:
-                #todo: Вот здесь нужно сделать поедание призраков
-                
-                for ghost in blinky, pinky, inky, clyde:
-                    screen.blit(ghost.animation[frame % 2], (ghost.x, ghost.y))
-        else:
-            for ghost in blinky, pinky, inky, clyde:
-                screen.blit(ghost.animation[frame % 2], (ghost.x, ghost.y))
+                else:
+                    if (
+                        any([pygame.sprite.collide_mask(pacman, g) for g in [blinky, pinky, inky, clyde]])
+                        and
+                        any([not g.run for g in [blinky, pinky, inky, clyde]])
+                    ):
+                        pygame.mixer.Channel(1).stop()
+                        pygame.time.wait(1000)
+                    if pygame.sprite.collide_mask(pacman, blinky) and not blinky.run:
+                        blinky.run = True
+                    elif pygame.sprite.collide_mask(pacman, pinky) and not pinky.run:
+                        pinky.run = True
+                    elif pygame.sprite.collide_mask(pacman, inky) and not inky.run:
+                        inky.run = True
+                    elif pygame.sprite.collide_mask(pacman, clyde) and not clyde.run:
+                        clyde.run = True
+                        
+        for ghost in blinky, pinky, inky, clyde:
+            screen.blit(ghost.animation[frame % 2], (ghost.x, ghost.y))
         #* Закомментируй это, если нужно убрать призраков
         
         screen.blit(pacman.animation[pacman.direction][pacman.frame % 4], (pacman.x, pacman.y))
