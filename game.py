@@ -654,14 +654,11 @@ class Pac_man:
             self.rect.x = self.x
             self.rect.y = self.y
 
-            # todo: Счётчик доходит до нуля, но где-то происходят сдвиги...
-            # todo  Показать Феде проблему; постараться пофиксить
-
-            if self.x <= -45:
-                self.x = 671
-            if self.x >= 672:
-                self.x = -45
-
+            if self.x <= 0:
+                self.x = 672
+            elif self.x >= 672:
+                self.x = 0
+                
             self.counter -= 1
         pygame.display.set_caption('{} {} {}'.format(self.path[0], self.path[1], self.counter))
         # ! Убрать строчку выше после дебагинга!
