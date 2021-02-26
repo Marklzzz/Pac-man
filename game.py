@@ -135,6 +135,8 @@ fruits_order = [
 
 class Field:
     def __init__(self):
+        self.maze = pygame.transform.scale(pygame.image.load('data/original maze.png'),
+                                           (28 * cell_size, 31 * cell_size))
         maze.blit(self.maze, (0, cell_size * 3))
 
     def update(self):
