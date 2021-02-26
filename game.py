@@ -1269,58 +1269,59 @@ class Pac_man:
                          load_image('data/pacman/down2.png', -1)]
             }
 
-        self.speed = 1
-        self.direction = direction  # это то направление в которое двигается pacman в данный момент
-        self.player_direction = (0, 0)  # направление, куда хочет двигаться игрок
+        self.direction = direction
+        self.player_direction = (0, 0)
+        self.counter = 0
 
         self.rect = self.animation[self.direction][0].get_rect()
         self.mask = pygame.mask.from_surface(self.animation[self.direction][0])
         self.rect.x = self.x
         self.rect.y = self.y
-
-        self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11) // cell_size)]
+        
+        self.path = [int((self.y + 11) // cell_size - 3), int((self.x + 11) // cell_size)]
 
     def move(self):
-        if self.wall_check(self.player_direction):
-            self.direction = self.player_direction
+        # print(self.x, self.y)  #! Убрать это, когда закончим с дебагом!
+        if self.counter == 0:
+            if self.wall_check(self.player_direction):
+                self.direction = self.player_direction
+            if self.direction != (0, 0) and self.wall_check(self.direction):
+                self.counter = 24
 
-        if self.wall_check(self.direction):
+        if self.wall_check(self.direction) and self.direction != (0, 0):
             if self.direction == (-1, 0) or self.direction == (0, -1):
-                self.path = [int((self.y + 32 - 3 * cell_size) // cell_size), int((self.x + 32) // cell_size)]
+                self.path = [int((self.y + 33) // cell_size - 3), int((self.x + 33) // cell_size)]  
             else:
-                self.path = [int((self.y + 11 - 3 * cell_size) // cell_size), int((self.x + 11) // cell_size)]
-
-            self.x += (self.speed * self.direction[0])
-            self.y += (self.speed * self.direction[1])
+                self.path = [int((self.y + 12) // cell_size - 3), int((self.x + 12) // cell_size)]
+            pygame.display.set_caption('{} {} {}'.format(self.path[0], self.path[1], self.counter))
+            #! Убрать строчку выше после дебагинга!
+            
+            self.x += self.direction[0]
+            if not (self.path[0] == 14 and (self.path[1] <= 5 or self.path[1] >= 22)):
+                self.y += self.direction[1]
             self.rect.x = self.x
             self.rect.y = self.y
+            
+            #todo: Счётчик доходит до нуля, но где-то происходят сдвиги...
+            #todo  Показать Феде проблему; постараться пофиксить
 
-            if self.x <= 0:
+            if self.x <= -45:
                 self.x = 671
             if self.x >= 672:
-                self.x = 0
-
-    def wall_check(self, direction):  # 1. Есть ли стена 2. Можно ли ещё пододвинуться к стенке 3. Направление
+                self.x = -45
+                
+            self.counter -= 1
+        pygame.display.set_caption('{} {} {}'.format(self.path[0], self.path[1], self.counter))
+        #! Убрать строчку выше после дебагинга!
+        
+    def wall_check(self, direction):
         try:
-            if nodes_matrix[self.path[0]][self.path[1] - 1].type == 'wall' and \
-                    cell_size * self.path[1] - 10 >= self.x and \
-                    direction[0] == -1:
-                return False
-
-            if nodes_matrix[self.path[0]][self.path[1] + 1].type == 'wall' and \
-                    cell_size * self.path[1] - 10 <= self.x and \
-                    direction[0] == 1:
-                return False
-
-            if nodes_matrix[self.path[0] - 1][self.path[1]].type == 'wall' and \
-                    cell_size * (self.path[0] + 3) - 10 >= self.y and \
-                    direction[1] == -1:
-                return False
-
-            if nodes_matrix[self.path[0] + 1][self.path[1]].type == 'wall' and \
-                    cell_size * (self.path[0] + 3) - 10 <= self.y and \
-                    direction[1] == 1:
-                return False
+            # print(self.path)  #! Убрать это, когда закончим с дебагом!
+            type_next_cell = nodes_matrix[self.path[0] + direction[1]][self.path[1] + direction[0]].type
+            
+            if type_next_cell == 'wall':
+                return False  
+            
         except IndexError:
             return True
         return True
