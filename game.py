@@ -1,161 +1,116 @@
-import os
 import random
-
-import pygame, pygame.display, pygame.sprite, pygame.time
-import pygame.font, pygame.mixer, pygame.draw
-import pygame.transform, pygame.event, pygame.mask
-
-from typing import List, Optional, Set, Tuple
-
-from maps import nodes_matrix, Cell
+import pygame
 
 
-def find_path(start_node: Cell, end_node: Cell) -> Optional[List[Tuple[int, int]]]:
-    start_node.cost = 0
+from maps import nodes_matrix
+from build_functions import find_path, load_image
+from global_values import cell_size, size, important_points, fruits_order, global_frame
 
-    reachable = [start_node]
-    explored = []
-
-    while reachable:
-        node = choose_node(reachable, end_node)
-
-        if not node:
-            return None
-        if node == end_node:
-            return build_path(end_node)
-
-        del reachable[reachable.index(node)]
-        explored.append(node)
-
-        try:
-            new_reachable = get_adjacent_nodes(node) - set(explored)
-        except IndexError:
-            return None
-        for adjacent in new_reachable:
-            if adjacent not in reachable:
-                reachable.append(adjacent)
-
-            if node.cost + 1 < adjacent.cost:
-                adjacent.previous = node
-                adjacent.cost = node.cost + 1
-
-    for line in nodes_matrix:
-        for cell in line:
-            cell.reset()
-
-    return None
-
-
-def get_adjacent_nodes(node: Cell) -> Set[Cell]:
-    x, y = node.x, node.y
-    adjacent = set()
-    for s_x in (-1, 0, 1):
-        for s_y in (-1, 0, 1):
-            if (
-                    0 not in (s_x, s_y) or
-                    (s_x, s_y) == (0, 0) or
-                    len(nodes_matrix) == y + s_y or
-                    len(nodes_matrix[0]) == x + s_x or
-                    -1 in (y + s_y, x + s_x)
-            ):
-                continue
-            cur_node = nodes_matrix[y + s_y][x + s_x]
-            if cur_node.type == 'field':
-                adjacent.add(cur_node)
-    return adjacent
-
-
-def build_path(to_node: Cell) -> List[Tuple[int, int]]:
-    path = []
-    while to_node != None:
-        path.append(to_node)
-        to_node = to_node.previous
-
-    for line in nodes_matrix:
-        for cell in line:
-            cell.reset()
-
-    sides = []
-    last_n = path[-1]
-    for n in list(reversed(path))[1:]:
-        sides.append((n.x - last_n.x, n.y - last_n.y))
-        last_n = n
-
-    return sides
-
-
-def choose_node(reachable: List[Cell], goal_node: Cell) -> Cell:
-    min_cost = 100
-    best_node = None
-
-    for node in reachable:
-        cost_start_to_node = node.cost
-        cost_node_to_goal = abs(node.x - goal_node.x) + abs(node.y - goal_node.y)
-        total_cost = cost_start_to_node + cost_node_to_goal
-
-        if min_cost > total_cost:
-            min_cost = total_cost
-            best_node = node
-
-    return best_node
 
 
 pygame.init()
-cell_size = 24
 
-size = 28 * cell_size, 36 * cell_size
 
 maze = pygame.Surface(size)
 screen = pygame.display.set_mode(size)
 
-important_points = ((6, 1), (21, 1), (1, 5), (6, 5), (9, 5), (12, 5), (15, 5), (18, 5), (21, 5), (26, 5),
-                    (6, 8), (21, 8), (12, 11), (15, 11), (6, 14), (9, 14), (18, 14), (21, 14), (9, 17),
-                    (18, 17), (6, 20), (9, 20), (18, 20), (21, 20), (6, 23), (9, 23), (12, 23), (15, 23),
-                    (18, 23), (21, 23), (3, 26), (24, 26), (12, 26), (15, 26), (26, 1))
 
-fruits_order = [
-    (), ('cherry',), ('cherry', 'strawberry'), ('cherry', 'strawberry', 'peach'),
-    ('cherry', 'strawberry', 'peach', 'peach'), ('cherry', 'strawberry', 'peach', 'peach', 'apple'),
-    ('cherry', 'strawberry', 'peach', 'peach', 'apple', 'apple'),
-    ('cherry', 'strawberry', 'peach', 'peach', 'apple', 'apple', 'melon'),
-    ('strawberry', 'peach', 'peach', 'apple', 'apple', 'melon', 'melon'),
-    ('peach', 'peach', 'apple', 'apple', 'melon', 'melon', 'spaceship'),
-    ('peach', 'apple', 'apple', 'melon', 'melon', 'spaceship', 'spaceship'),
-    ('apple', 'apple', 'melon', 'melon', 'spaceship', 'spaceship', 'bell'),
-    ('apple', 'melon', 'melon', 'spaceship', 'spaceship', 'bell', 'bell'),
-    ('melon', 'melon', 'spaceship', 'spaceship', 'bell', 'bell', 'key'),
-    ('melon', 'spaceship', 'spaceship', 'bell', 'bell', 'key', 'key'),
-    ('spaceship', 'spaceship', 'bell', 'bell', 'key', 'key', 'key'),
-    ('spaceship', 'bell', 'bell', 'key', 'key', 'key', 'key'),
-    ('bell', 'bell', 'key', 'key', 'key', 'key', 'key'),
-    ('bell', 'key', 'key', 'key', 'key', 'key', 'key'),
-    ('key', 'key', 'key', 'key', 'key', 'key', 'key'),
-]
 
 
 class Field:
     def __init__(self):
-        self.maze = pygame.transform.scale(pygame.image.load('data/original maze.png'),
-                                           (28 * cell_size, 31 * cell_size))
+        self.maze = load_image('data/original maze.png', size=(28 * cell_size, 31 * cell_size))
         maze.blit(self.maze, (0, cell_size * 3))
 
     def update(self):
         screen.blit(maze, (0, 0))
 
 
-def load_image(name, color_key=None, size=None):
-    fullname = os.path.join(name)
-    image = pygame.image.load(fullname)
-    image = pygame.transform.scale(image, (45, 45) if not size else size)
 
-    if color_key is not None:
-        if color_key == -1:
-            color_key = image.get_at((0, 0))
-        image.set_colorkey(color_key)
-    else:
-        image = image.convert_alpha()
-    return image
+class Pac_man:
+    def __init__(self, x, y, direction):
+        self.x, self.y = x, y
+        self.frame = 0
 
+        self.animation = \
+            {
+                (0, 0): [load_image('data/pacman/full.png')] * 4,
+                (-1, 0): [load_image('data/pacman/left1.png', -1),
+                          load_image('data/pacman/left2.png', -1),
+                          load_image('data/pacman/full.png'),
+                          load_image('data/pacman/left2.png', -1)],
+                (1, 0): [load_image('data/pacman/right1.png', -1),
+                         load_image('data/pacman/right2.png', -1),
+                         load_image('data/pacman/full.png'),
+                         load_image('data/pacman/right2.png', -1)],
+                (0, -1): [load_image('data/pacman/up1.png', -1),
+                          load_image('data/pacman/up2.png', -1),
+                          load_image('data/pacman/full.png'),
+                          load_image('data/pacman/up2.png', -1)],
+                (0, 1): [load_image('data/pacman/down1.png', -1),
+                         load_image('data/pacman/down2.png', -1),
+                         load_image('data/pacman/full.png'),
+                         load_image('data/pacman/down2.png', -1)]
+            }
+
+        self.direction = direction
+        self.player_direction = (0, 0)
+        self.counter = 0
+
+        self.rect = self.animation[self.direction][0].get_rect()
+        self.mask = pygame.mask.from_surface(self.animation[self.direction][0])
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+        self.path = [int((self.y + 11) // cell_size - 3), int((self.x + 11) // cell_size)]
+
+    def move(self):
+        # print(self.x, self.y)  #! Убрать это, когда закончим с дебагом!
+        if self.counter == 0:
+            if self.wall_check(self.player_direction):
+                self.direction = self.player_direction
+            if self.direction != (0, 0) and self.wall_check(self.direction):
+                self.counter = 24
+
+        if self.wall_check(self.direction) and self.direction != (0, 0):
+            if self.direction == (-1, 0) or self.direction == (0, -1):
+                self.path = [int((self.y + 33) // cell_size - 3), int((self.x + 33) // cell_size)]
+            else:
+                self.path = [int((self.y + 12) // cell_size - 3), int((self.x + 12) // cell_size)]
+            pygame.display.set_caption('{} {} {}'.format(self.path[0], self.path[1], self.counter))
+            # ! Убрать строчку выше после дебагинга!
+
+            self.x += self.direction[0]
+            if not (self.path[0] == 14 and (self.path[1] <= 5 or self.path[1] >= 22)):
+                self.y += self.direction[1]
+            self.rect.x = self.x
+            self.rect.y = self.y
+
+            if self.x <= 0:
+                self.x = 672
+            elif self.x >= 672:
+                self.x = 0
+
+            self.counter -= 1
+        pygame.display.set_caption('{} {} {}'.format(self.path[0], self.path[1], self.counter))
+        # ! Убрать строчку выше после дебагинга!
+
+    def wall_check(self, direction):
+        try:
+            # print(self.path)  #! Убрать это, когда закончим с дебагом!
+            type_next_cell = nodes_matrix[self.path[0] + direction[1]][self.path[1] + direction[0]].type
+
+            if type_next_cell == 'wall':
+                return False
+
+        except IndexError:
+            return True
+        return True
+
+    def frames(self):
+        if self.wall_check(self.direction):
+            if global_frame % 4 == 0:
+                self.frame += 1
 
 class Ghost:
     def __init__(self, x, y):
@@ -268,6 +223,7 @@ class Blinky(Ghost):
         self.path = iter(find_path(nodes_matrix[end[1]][end[0]], nodes_matrix[1][25]) + [(1, 0)])
 
     def move(self, type_of_move='normal'):
+        global side
         if type_of_move == 'agressive':
             self.angry = True
         elif type_of_move == 'normal':
@@ -595,90 +551,9 @@ class Clyde(Ghost):
                               load_image('data/ghosts/clyde/{}2.png'.format(self.side))]
 
 
-class Pac_man:
-    def __init__(self, x, y, direction):
-        self.x, self.y = x, y
-        self.frame = 0
 
-        self.animation = \
-            {
-                (0, 0): [load_image('data/pacman/full.png')] * 4,
-                (-1, 0): [load_image('data/pacman/left1.png', -1),
-                          load_image('data/pacman/left2.png', -1),
-                          load_image('data/pacman/full.png'),
-                          load_image('data/pacman/left2.png', -1)],
-                (1, 0): [load_image('data/pacman/right1.png', -1),
-                         load_image('data/pacman/right2.png', -1),
-                         load_image('data/pacman/full.png'),
-                         load_image('data/pacman/right2.png', -1)],
-                (0, -1): [load_image('data/pacman/up1.png', -1),
-                          load_image('data/pacman/up2.png', -1),
-                          load_image('data/pacman/full.png'),
-                          load_image('data/pacman/up2.png', -1)],
-                (0, 1): [load_image('data/pacman/down1.png', -1),
-                         load_image('data/pacman/down2.png', -1),
-                         load_image('data/pacman/full.png'),
-                         load_image('data/pacman/down2.png', -1)]
-            }
 
-        self.direction = direction
-        self.player_direction = (0, 0)
-        self.counter = 0
 
-        self.rect = self.animation[self.direction][0].get_rect()
-        self.mask = pygame.mask.from_surface(self.animation[self.direction][0])
-        self.rect.x = self.x
-        self.rect.y = self.y
-
-        self.path = [int((self.y + 11) // cell_size - 3), int((self.x + 11) // cell_size)]
-
-    def move(self):
-        # print(self.x, self.y)  #! Убрать это, когда закончим с дебагом!
-        if self.counter == 0:
-            if self.wall_check(self.player_direction):
-                self.direction = self.player_direction
-            if self.direction != (0, 0) and self.wall_check(self.direction):
-                self.counter = 24
-
-        if self.wall_check(self.direction) and self.direction != (0, 0):
-            if self.direction == (-1, 0) or self.direction == (0, -1):
-                self.path = [int((self.y + 33) // cell_size - 3), int((self.x + 33) // cell_size)]
-            else:
-                self.path = [int((self.y + 12) // cell_size - 3), int((self.x + 12) // cell_size)]
-            pygame.display.set_caption('{} {} {}'.format(self.path[0], self.path[1], self.counter))
-            # ! Убрать строчку выше после дебагинга!
-
-            self.x += self.direction[0]
-            if not (self.path[0] == 14 and (self.path[1] <= 5 or self.path[1] >= 22)):
-                self.y += self.direction[1]
-            self.rect.x = self.x
-            self.rect.y = self.y
-
-            if self.x <= 0:
-                self.x = 672
-            elif self.x >= 672:
-                self.x = 0
-                
-            self.counter -= 1
-        pygame.display.set_caption('{} {} {}'.format(self.path[0], self.path[1], self.counter))
-        # ! Убрать строчку выше после дебагинга!
-
-    def wall_check(self, direction):
-        try:
-            # print(self.path)  #! Убрать это, когда закончим с дебагом!
-            type_next_cell = nodes_matrix[self.path[0] + direction[1]][self.path[1] + direction[0]].type
-
-            if type_next_cell == 'wall':
-                return False
-
-        except IndexError:
-            return True
-        return True
-
-    def frames(self):
-        if self.wall_check(self.direction):
-            if global_frame % 4 == 0:
-                self.frame += 1
 
 
 class TotalPoints:
@@ -1149,7 +1024,6 @@ def make_game(lvl, restart=False):
 
 if __name__ == '__main__':
     totalpoints = TotalPoints()
-    pacman, points_sprite, global_frame, level, blinky, seconds, disarming, food = 0, 0, 0, 0, 0, 0, 0, 0
     play_sound = True
     pygame.mixer.init()
 
