@@ -1724,20 +1724,21 @@ def make_game(lvl, restart=False):
                         win, running = False, False
         #* Закомментируй это, если нужно убрать призраков
                 else:
-                    if (
-                        any([pygame.sprite.collide_mask(pacman, g) for g in [blinky, pinky, inky, clyde]])
-                        and
-                        any([not g.run for g in [blinky, pinky, inky, clyde]])
-                    ):
+                    if pygame.sprite.collide_mask(pacman, blinky) and not blinky.run:
                         pygame.mixer.Channel(1).stop()
                         pygame.time.wait(1000)
-                    if pygame.sprite.collide_mask(pacman, blinky) and not blinky.run:
                         blinky.run = True
                     elif pygame.sprite.collide_mask(pacman, pinky) and not pinky.run:
+                        pygame.mixer.Channel(1).stop()
+                        pygame.time.wait(1000)
                         pinky.run = True
                     elif pygame.sprite.collide_mask(pacman, inky) and not inky.run:
+                        pygame.mixer.Channel(1).stop()
+                        pygame.time.wait(1000)
                         inky.run = True
                     elif pygame.sprite.collide_mask(pacman, clyde) and not clyde.run:
+                        pygame.mixer.Channel(1).stop()
+                        pygame.time.wait(1000)
                         clyde.run = True
                         
         for ghost in blinky, pinky, inky, clyde:
