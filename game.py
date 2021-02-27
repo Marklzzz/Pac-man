@@ -1032,7 +1032,7 @@ if __name__ == '__main__':
     text = font.render("ENERGIZER" + " " * 29 + "-" + " " * 21 + "50PTS", True, '#b69200')
     screen.blit(text, ((size[0] - text.get_width()) // 2, (size[1] - text.get_height()) // 2 + 195))
 
-    text = font.render("BONUS      MAZE- MAN      FOR       10000PTS", True, '#b69200')
+    text = font.render("BONUS     MAZE- MAN     FOR     10000PTS", True, '#b69200')
     screen.blit(text, ((size[0] - text.get_width()) // 2, (size[1] - text.get_height()) // 2 + 220))
 
     text = font.render("BY   PAVEL   OVCHINNIKOV", True, '#00c800')
