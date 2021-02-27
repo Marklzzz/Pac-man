@@ -1016,7 +1016,7 @@ if __name__ == '__main__':
     pygame.mixer.init()
 
     font = pygame.font.Font('data/PacMan Font.ttf', 45)
-    text = font.render("PAC- MAN", True, '#fdd700')
+    text = font.render("MAZE- MAN", True, '#fdd700')
     screen.blit(text, ((size[0] - text.get_width()) // 2, 250))
 
     font = pygame.font.Font('data/PacMan Font.ttf', 15)
@@ -1032,7 +1032,7 @@ if __name__ == '__main__':
     text = font.render("ENERGIZER" + " " * 29 + "-" + " " * 21 + "50PTS", True, '#b69200')
     screen.blit(text, ((size[0] - text.get_width()) // 2, (size[1] - text.get_height()) // 2 + 195))
 
-    text = font.render("BONUS      PAC- MAN      FOR       10000PTS", True, '#b69200')
+    text = font.render("BONUS      MAZE- MAN      FOR       10000PTS", True, '#b69200')
     screen.blit(text, ((size[0] - text.get_width()) // 2, (size[1] - text.get_height()) // 2 + 220))
 
     text = font.render("BY   PAVEL   OVCHINNIKOV", True, '#00c800')
@@ -1061,7 +1061,7 @@ if __name__ == '__main__':
 
     render_counters()
     pygame.display.flip()
-    pygame.display.set_caption('PAC-MAN')
+    pygame.display.set_caption('MAZE-MAN')
     pygame.display.set_icon(pygame.image.load("data/other/favicon.ico"))
 
     clock = pygame.time.Clock()

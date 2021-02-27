@@ -24,5 +24,6 @@ fruits_order = [
     ('bell', 'key', 'key', 'key', 'key', 'key', 'key'),
     ('key', 'key', 'key', 'key', 'key', 'key', 'key'),
 ]
-global_frame = 0
-pacman, points_sprite, level, blinky, seconds, disarming, food = 0, 0, 0, 0, 0, 0, 0
+
+
+pacman, points_sprite, level, blinky, seconds, disarming, food, global_frame = 0, 0, 0, 0, 0, 0, 0, 0
