@@ -1,20 +1,18 @@
 import random
 import pygame
 
+import pygame.display, pygame.sprite, pygame.event, pygame.transform
+import pygame.font, pygame.mixer, pygame.time, pygame.draw, pygame.mask
 
 from maps import nodes_matrix
 from build_functions import find_path, load_image
 from global_values import cell_size, size, important_points, fruits_order, global_frame
 
 
-
 pygame.init()
-
 
 maze = pygame.Surface(size)
 screen = pygame.display.set_mode(size)
-
-
 
 
 class Field:
@@ -65,7 +63,6 @@ class Pac_man:
         self.path = [int((self.y + 11) // cell_size - 3), int((self.x + 11) // cell_size)]
 
     def move(self):
-        # print(self.x, self.y)  #! Убрать это, когда закончим с дебагом!
         if self.counter == 0:
             if self.wall_check(self.player_direction):
                 self.direction = self.player_direction
@@ -77,8 +74,6 @@ class Pac_man:
                 self.path = [int((self.y + 33) // cell_size - 3), int((self.x + 33) // cell_size)]
             else:
                 self.path = [int((self.y + 12) // cell_size - 3), int((self.x + 12) // cell_size)]
-            pygame.display.set_caption('{} {} {}'.format(self.path[0], self.path[1], self.counter))
-            # ! Убрать строчку выше после дебагинга!
 
             self.x += self.direction[0]
             if not (self.path[0] == 14 and (self.path[1] <= 5 or self.path[1] >= 22)):
@@ -93,11 +88,9 @@ class Pac_man:
 
             self.counter -= 1
         pygame.display.set_caption('{} {} {}'.format(self.path[0], self.path[1], self.counter))
-        # ! Убрать строчку выше после дебагинга!
 
     def wall_check(self, direction):
         try:
-            # print(self.path)  #! Убрать это, когда закончим с дебагом!
             type_next_cell = nodes_matrix[self.path[0] + direction[1]][self.path[1] + direction[0]].type
 
             if type_next_cell == 'wall':
@@ -282,18 +275,18 @@ class Blinky(Ghost):
             super().pave()
 
         if self.direction in [(0.5, 0), (1, 0)]:
-            side = 'right'
+            self.side = 'right'
         elif self.direction in [(-0.5, 0), (-1, 0)]:
-            side = 'left'
+            self.side = 'left'
         elif self.direction == (0, 1):
-            side = 'down'
+            self.side = 'down'
         elif self.direction == (0, -1):
-            side = 'up'
+            self.side = 'up'
 
         if not self.disarming and not self.run:
             angry = 'angry_' if self.angry else ''
-            self.animation = [load_image('data/ghosts/blinky/{}{}1.png'.format(angry, side)),
-                              load_image('data/ghosts/blinky/{}{}2.png'.format(angry, side))]
+            self.animation = [load_image('data/ghosts/blinky/{}{}1.png'.format(angry, self.side)),
+                              load_image('data/ghosts/blinky/{}{}2.png'.format(angry, self.side))]
 
 
 class Pinky(Ghost):
@@ -549,11 +542,6 @@ class Clyde(Ghost):
         if not self.disarming and not self.run:
             self.animation = [load_image('data/ghosts/clyde/{}1.png'.format(self.side)),
                               load_image('data/ghosts/clyde/{}2.png'.format(self.side))]
-
-
-
-
-
 
 
 class TotalPoints:
