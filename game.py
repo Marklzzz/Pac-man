@@ -847,17 +847,23 @@ def make_game(lvl, restart=False):
 
             sl = (len(food) - len(points_sprite.sprites())) // 49 + 1 if not disarming else -1
             if play_sound:
-                raw = pygame.mixer.Channel(1).get_sound().get_raw()
-                if disarming and (raw[12], raw[16]) != (254, 2):
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/active_energy.wav'), 10000)
-                if sl == 2 and (raw[12], raw[16]) != (0, 0):
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_2.wav'), 10000)
-                elif sl == 3 and (raw[12], raw[16]) != (253, 4):
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_3.wav'), 10000)
-                elif sl == 4 and (raw[12], raw[16]) != (255, 2):
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_4.wav'), 10000)
-                elif sl == 5 and (raw[12], raw[16]) != (254, 1):
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_5.wav'), 10000)
+                if pygame.mixer.Channel(1).get_sound():
+                    raw = pygame.mixer.Channel(1).get_sound().get_raw()
+                
+                if any([g.run for g in [blinky, pinky, inky, clyde]]):
+                    if (raw[20], raw[21]) in [(254, 255), (255, 255)]:
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/hiding.wav'))
+                else:
+                    if disarming and (raw[12], raw[16]) != (254, 2):
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/active_energy.wav'), 10000)
+                    elif sl == 2 and (raw[12], raw[16]) != (0, 0):
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_2.wav'), 10000)
+                    elif sl == 3 and (raw[12], raw[16]) != (253, 4):
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_3.wav'), 10000)
+                    elif sl == 4 and (raw[12], raw[16]) != (255, 2):
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_4.wav'), 10000)
+                    elif sl == 5 and (raw[12], raw[16]) != (254, 1):
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/siren_5.wav'), 10000)
 
             # * Закомментируй это, если нужно убрать призраков
             if clear_seconds >= 7 - level * 0.4375 and not pinky.in_the_game and not disarming:
@@ -892,19 +898,6 @@ def make_game(lvl, restart=False):
                 for ghost in (blinky, pinky, inky, clyde):
                     ghost.scatter = False
             # * Закомментируй это, если нужно убрать призраков
-        else:
-            pygame.mixer.Channel(1).set_volume(0)
-            blured = pygame.transform.smoothscale(screen, (63, 81))
-            blured = pygame.transform.smoothscale(blured, size)
-            dark = pygame.Surface(size)
-            pygame.draw.rect(dark, '#000000', (0, 0, size[0], size[1]))
-            dark.set_alpha(80)
-            blured.blit(dark, (0, 0))
-            screen.blit(blured, (0, 0))
-
-            font = pygame.font.Font('data/PacMan Font.ttf', 55)
-            text = font.render("PAUSED", True, '#ffffff')
-            screen.blit(text, ((size[0] - text.get_width()) // 2, (size[1] - text.get_height()) // 2))
 
         if not points_sprite.sprites():
             running = False
@@ -937,27 +930,41 @@ def make_game(lvl, restart=False):
                 # * Закомментируй это, если нужно убрать призраков
                 else:
                     if pygame.sprite.collide_mask(pacman, blinky) and not blinky.run:
-                        pygame.mixer.Channel(1).stop()
-                        pygame.time.wait(1000)
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/eat_ghost.wav'))
+                        pygame.time.wait(500)
                         blinky.run = True
                     elif pygame.sprite.collide_mask(pacman, pinky) and not pinky.run:
-                        pygame.mixer.Channel(1).stop()
-                        pygame.time.wait(1000)
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/eat_ghost.wav'))
+                        pygame.time.wait(500)
                         pinky.run = True
                     elif pygame.sprite.collide_mask(pacman, inky) and not inky.run:
-                        pygame.mixer.Channel(1).stop()
-                        pygame.time.wait(1000)
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/eat_ghost.wav'))
+                        pygame.time.wait(500)
                         inky.run = True
                     elif pygame.sprite.collide_mask(pacman, clyde) and not clyde.run:
-                        pygame.mixer.Channel(1).stop()
-                        pygame.time.wait(1000)
+                        pygame.mixer.Channel(1).play(pygame.mixer.Sound('sounds/eat_ghost.wav'))
+                        pygame.time.wait(500)
                         clyde.run = True
+                    
 
         for ghost in blinky, pinky, inky, clyde:
             screen.blit(ghost.animation[frame % 2], (ghost.x, ghost.y))
         # * Закомментируй это, если нужно убрать призраков
 
         screen.blit(pacman.animation[pacman.direction][pacman.frame % 4], (pacman.x, pacman.y))
+        
+        if paused:
+            pygame.mixer.Channel(1).set_volume(0)
+            blured = pygame.transform.smoothscale(screen, (63, 81))
+            blured = pygame.transform.smoothscale(blured, size)
+            dark = pygame.Surface(size)
+            pygame.draw.rect(dark, '#000000', (0, 0, size[0], size[1]))
+            dark.set_alpha(80)
+            blured.blit(dark, (0, 0))
+            screen.blit(blured, (0, 0))
+            font = pygame.font.Font('data/PacMan Font.ttf', 55)
+            text = font.render("PAUSED", True, '#ffffff')
+            screen.blit(text, ((size[0] - text.get_width()) // 2, (size[1] - text.get_height()) // 2))
 
         render_counters()
         clock.tick(fps)
